@@ -1,0 +1,38 @@
+<div class="search-container">
+  <input
+    type="text"
+    id="searchInput"
+    placeholder="Search for a company or person..."
+    (input)="onSearch($event)"
+  />
+</div>
+<div class="results" *ngIf="showResults">
+  <!-- Company matches -->
+  <div class="company-result" *ngFor="let company of matchingCompanies">
+    <div class="company-name">{{ company.name }}</div>
+    <div class="career-link">
+      <a [href]="company.careerPage" target="_blank">{{
+        company.careerPage
+      }}</a>
+    </div>
+    <div class="referrals" *ngIf="company.referrals.length > 0">
+      <h3>Referrals:</h3>
+      <ul>
+        <li *ngFor="let referral of company.referrals">{{ referral }}</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Person matches -->
+  <div class="person-result" *ngFor="let person of matchingPeople">
+    <div class="person-name">{{ person.name }}</div>
+    <div class="companies">
+      <h3>Can refer at:</h3>
+      <ul>
+        <li *ngFor="let company of person.companies">
+          <a [href]="company.careerPage" target="_blank">{{ company.name }}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
