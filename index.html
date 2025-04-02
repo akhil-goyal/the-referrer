@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Company Referral Search</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+      }
+
+      .search-container {
+        margin-bottom: 20px;
+      }
+
+      #searchInput {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .results {
+        border: 1px solid #eee;
+        padding: 15px;
+        border-radius: 4px;
+        display: none;
+      }
+
+      .company-result,
+      .person-result {
+        margin-bottom: 20px;
+      }
+
+      .company-name,
+      .person-name {
+        color: #2c3e50;
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      .career-link {
+        margin: 10px 0;
+      }
+
+      .career-link a {
+        color: #2980b9;
+        text-decoration: none;
+      }
+
+      .referrals,
+      .companies {
+        margin-top: 10px;
+      }
+
+      .referrals ul,
+      .companies ul {
+        list-style-type: none;
+        padding-left: 0;
+      }
+
+      .referrals li,
+      .companies li {
+        padding: 5px 0;
+      }
+
+      .companies li a {
+        color: #2980b9;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="search-container">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search for a company or person..."
+      />
+    </div>
+    <div class="results" id="results">
+      <!-- Results will be dynamically populated here -->
+    </div>
+
+    <script>
+      // Person-centric database
+      const referrals = [
+        {
+          name: "Anita",
+          companies: [{ name: "RBC", careerPage: "https://jobs.rbc.com/" }],
+        },
+        {
+          name: "Raymond",
+          companies: [{ name: "RBC", careerPage: "https://jobs.rbc.com/" }],
+        },
+        {
+          name: "Dileep",
+          companies: [{ name: "RBC", careerPage: "https://jobs.rbc.com/" }],
+        },
+        {
+          name: "Bryce",
+          companies: [{ name: "RBC", careerPage: "https://jobs.rbc.com/" }],
+        },
+        {
+          name: "Jeferrin",
+          companies: [
+            {
+              name: "Amazon AWS",
+              careerPage: "https://aws.amazon.com/careers/",
+            },
+          ],
+        },
+        {
+          name: "Vidhi",
+          companies: [
+            {
+              name: "Synechron",
+              careerPage: "https://www.synechron.com/careers",
+            },
+            { name: "Citibank", careerPage: "https://jobs.citi.com/" },
+          ],
+        },
+        {
+          name: "Anoop",
+          companies: [
+            {
+              name: "Synechron",
+              careerPage: "https://www.synechron.com/careers",
+            },
+            { name: "Citibank", careerPage: "https://jobs.citi.com/" },
+          ],
+        },
+        {
+          name: "Sadiq",
+          companies: [
+            { name: "TCS", careerPage: "https://www.tcs.com/careers" },
+          ],
+        },
+        {
+          name: "Nirav Karia",
+          companies: [
+            {
+              name: "Persistent Systems",
+              careerPage: "https://www.persistent.com/careers/",
+            },
+          ],
+        },
+        {
+          name: "Tannu",
+          companies: [
+            {
+              name: "CIBC",
+              careerPage: "https://www.cibc.com/en/about-cibc/careers.html",
+            },
+          ],
+        },
+        {
+          name: "Hema",
+          companies: [
+            {
+              name: "CIBC",
+              careerPage: "https://www.cibc.com/en/about-cibc/careers.html",
+            },
+          ],
+        },
+        {
+          name: "Deepti",
+          companies: [
+            {
+              name: "CIBC",
+              careerPage: "https://www.cibc.com/en/about-cibc/careers.html",
+            },
+            {
+              name: "Metrolynx",
+              careerPage: "https://www.metrolinx.com/en/about-us/careers",
+            },
+            {
+              name: "ONXpress",
+              careerPage: "https://www.onxpress.com/careers",
+            },
+          ],
+        },
+        {
+          name: "Jatin",
+          companies: [
+            { name: "IBM", careerPage: "https://www.ibm.com/ca-en/careers" },
+          ],
+        },
+        {
+          name: "Akash",
+          companies: [
+            { name: "IBM", careerPage: "https://www.ibm.com/ca-en/careers" },
+          ],
+        },
+        {
+          name: "Ammy",
+          companies: [
+            {
+              name: "ICICI Bank",
+              careerPage: "https://www.icicibank.ca/careers",
+            },
+          ],
+        },
+        {
+          name: "Suriti",
+          companies: [
+            {
+              name: "Bruce Power",
+              careerPage: "https://www.brucepower.com/careers/",
+            },
+            {
+              name: "Ontario Power Group",
+              careerPage: "https://www.opg.com/careers/",
+            },
+          ],
+        },
+        {
+          name: "Mukul",
+          companies: [
+            {
+              name: "LTIMindtree",
+              careerPage: "https://www.ltimindtree.com/careers/",
+            },
+            { name: "Cognizant", careerPage: "https://careers.cognizant.com/" },
+            { name: "Microsoft", careerPage: "https://careers.microsoft.com/" },
+            {
+              name: "Manulife",
+              careerPage: "https://www.manulife.ca/careers.html",
+            },
+            { name: "McDonalds", careerPage: "https://careers.mcdonalds.com/" },
+            {
+              name: "Blue Yonder",
+              careerPage: "https://www.blueyonder.com/careers",
+            },
+          ],
+        },
+        {
+          name: "Harneet",
+          companies: [
+            { name: "CGI", careerPage: "https://www.cgi.com/en/careers" },
+          ],
+        },
+        {
+          name: "Lakshay",
+          companies: [
+            {
+              name: "Porter Airlines",
+              careerPage: "https://www.flyporter.com/en/careers",
+            },
+          ],
+        },
+        {
+          name: "Hema Jampala",
+          companies: [
+            { name: "CPPIB", careerPage: "https://www.cppib.com/en/careers/" },
+            { name: "Intuit", careerPage: "https://www.intuit.com/careers/" },
+          ],
+        },
+        {
+          name: "Dilpreet's Husband",
+          companies: [
+            {
+              name: "OSFI",
+              careerPage:
+                "https://www.osfi-bsif.gc.ca/Eng/wt-ow/Pages/careers.aspx",
+            },
+          ],
+        },
+        {
+          name: "Dilpreet",
+          companies: [
+            { name: "Intact", careerPage: "https://careers.intact.ca/" },
+          ],
+        },
+        {
+          name: "Charles K.",
+          companies: [
+            {
+              name: "Christie",
+              careerPage: "https://www.christiedigital.com/careers/",
+            },
+          ],
+        },
+        {
+          name: "Jason Hollingsworth",
+          companies: [
+            {
+              name: "TEKSystems",
+              careerPage: "https://www.teksystems.com/en/careers",
+            },
+          ],
+        },
+        {
+          name: "Mani Dhiman",
+          companies: [
+            {
+              name: "Warner Bros.",
+              careerPage: "https://www.warnerbroscareers.com/",
+            },
+          ],
+        },
+        {
+          name: "Aravind",
+          companies: [
+            {
+              name: "Scotiabank",
+              careerPage:
+                "https://jobs.scotiabank.com/search/?createNewAlert=false&q=&locationsearch=canada",
+            },
+          ],
+        },
+        {
+          name: "Himanshu Mainrai",
+          companies: [
+            {
+              name: "First Derivative",
+              careerPage:
+                "https://fa-esxc-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/",
+            },
+          ],
+        },
+        {
+          name: "Davinder Saggu",
+          companies: [
+            {
+              name: "Ross Video",
+              careerPage:
+                "https://earlyaccess.dayforcehcm.com/CandidatePortal/en-US/rossvideo",
+            },
+          ],
+        },
+      ];
+
+      const searchInput = document.getElementById("searchInput");
+      const resultsDiv = document.getElementById("results");
+
+      searchInput.addEventListener("input", function (e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+
+        // Clear previous results and hide if search is empty
+        resultsDiv.innerHTML = "";
+        if (!searchTerm) {
+          resultsDiv.style.display = "none";
+          return;
+        }
+
+        // Search for people
+        const matchingPeople = referrals.filter((p) =>
+          p.name.toLowerCase().includes(searchTerm)
+        );
+
+        // Search for companies
+        const matchingCompanies = [];
+        referrals.forEach((person) => {
+          person.companies.forEach((company) => {
+            if (company.name.toLowerCase().includes(searchTerm)) {
+              // Avoid duplicates if a company is associated with multiple people
+              const existingCompany = matchingCompanies.find(
+                (c) => c.name.toLowerCase() === company.name.toLowerCase()
+              );
+              if (existingCompany) {
+                if (!existingCompany.referrals.includes(person.name)) {
+                  existingCompany.referrals.push(person.name);
+                }
+              } else {
+                matchingCompanies.push({
+                  name: company.name,
+                  careerPage: company.careerPage,
+                  referrals: [person.name],
+                });
+              }
+            }
+          });
+        });
+
+        // Display results
+        if (matchingCompanies.length > 0 || matchingPeople.length > 0) {
+          resultsDiv.style.display = "block";
+        } else {
+          resultsDiv.style.display = "none";
+          return;
+        }
+
+        // Display company matches
+        matchingCompanies.forEach((company) => {
+          const companyDiv = document.createElement("div");
+          companyDiv.className = "company-result";
+
+          const companyNameDiv = document.createElement("div");
+          companyNameDiv.className = "company-name";
+          companyNameDiv.textContent = company.name;
+          companyDiv.appendChild(companyNameDiv);
+
+          const careerLinkDiv = document.createElement("div");
+          careerLinkDiv.className = "career-link";
+          careerLinkDiv.innerHTML = `<a href="${company.careerPage}" target="_blank">${company.careerPage}</a>`;
+          companyDiv.appendChild(careerLinkDiv);
+
+          if (company.referrals.length > 0) {
+            const referralsDiv = document.createElement("div");
+            referralsDiv.className = "referrals";
+            referralsDiv.innerHTML = "<h3>Referrals:</h3>";
+            const referralList = document.createElement("ul");
+            company.referrals.forEach((referral) => {
+              const li = document.createElement("li");
+              li.textContent = referral;
+              referralList.appendChild(li);
+            });
+            referralsDiv.appendChild(referralList);
+            companyDiv.appendChild(referralsDiv);
+          }
+
+          resultsDiv.appendChild(companyDiv);
+        });
+
+        // Display person matches
+        matchingPeople.forEach((person) => {
+          const personDiv = document.createElement("div");
+          personDiv.className = "person-result";
+
+          const personNameDiv = document.createElement("div");
+          personNameDiv.className = "person-name";
+          personNameDiv.textContent = person.name;
+          personDiv.appendChild(personNameDiv);
+
+          const companiesDiv = document.createElement("div");
+          companiesDiv.className = "companies";
+          companiesDiv.innerHTML = "<h3>Can refer at:</h3>";
+          const companyList = document.createElement("ul");
+          person.companies.forEach((company) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<a href="${company.careerPage}" target="_blank">${company.name}</a>`;
+            companyList.appendChild(li);
+          });
+          companiesDiv.appendChild(companyList);
+          personDiv.appendChild(companiesDiv);
+
+          resultsDiv.appendChild(personDiv);
+        });
+      });
+
+      // Function to add or update a referral
+      function addOrUpdateReferral(personName, companyName, careerPage) {
+        // Find if the person already exists (case-insensitive)
+        const existingPerson = referrals.find(
+          (p) => p.name.toLowerCase() === personName.toLowerCase()
+        );
+
+        if (existingPerson) {
+          // Person exists, check if the company is already listed
+          const existingCompany = existingPerson.companies.find(
+            (c) =>
+              c.name.toLowerCase() === companyName.toLowerCase() ||
+              c.careerPage.toLowerCase() === careerPage.toLowerCase()
+          );
+          if (!existingCompany) {
+            // Add the new company
+            existingPerson.companies.push({
+              name: companyName,
+              careerPage: careerPage,
+            });
+          }
+        } else {
+          // Person doesn't exist, add new entry
+          referrals.push({
+            name: personName,
+            companies: [{ name: companyName, careerPage: careerPage }],
+          });
+        }
+      }
+
+      // Example usage:
+      // addOrUpdateReferral("Deepti", "Google", "https://careers.google.com");
+      // addOrUpdateReferral("John", "Apple", "https://www.apple.com/careers");
+    </script>
+  </body>
+</html>
