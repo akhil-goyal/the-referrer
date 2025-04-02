@@ -1,0 +1,67 @@
+body {
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+.search-container {
+  margin-bottom: 20px;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.results {
+  border: 1px solid #eee;
+  padding: 15px;
+  border-radius: 4px;
+  display: none;
+}
+
+.company-result,
+.person-result {
+  margin-bottom: 20px;
+}
+
+.company-name,
+.person-name {
+  color: #2c3e50;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.career-link {
+  margin: 10px 0;
+}
+
+.career-link a {
+  color: #2980b9;
+  text-decoration: none;
+}
+
+.referrals,
+.companies {
+  margin-top: 10px;
+}
+
+.referrals ul,
+.companies ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.referrals li,
+.companies li {
+  padding: 5px 0;
+}
+
+.companies li a {
+  color: #2980b9;
+  text-decoration: none;
+}
