@@ -1,38 +1,180 @@
-<div class="search-container">
-  <input
-    type="text"
-    id="searchInput"
-    placeholder="Search for a company or person..."
-    (input)="onSearch($event)"
-  />
-</div>
-<div class="results" *ngIf="showResults">
-  <!-- Company matches -->
-  <div class="company-result" *ngFor="let company of matchingCompanies">
-    <div class="company-name">{{ company.name }}</div>
-    <div class="career-link">
-      <a [href]="company.careerPage" target="_blank">{{
-        company.careerPage
-      }}</a>
-    </div>
-    <div class="referrals" *ngIf="company.referrals.length > 0">
-      <h3>Referrals:</h3>
-      <ul>
-        <li *ngFor="let referral of company.referrals">{{ referral }}</li>
-      </ul>
+<div class="container mt-5">
+  <!-- Search Bar -->
+  <div class="row mb-4">
+    <div class="col">
+      <div class="input-group shadow-sm">
+        <span class="input-group-text bg-white border-0">
+          <i class="fas fa-search text-primary"></i>
+        </span>
+        <input
+          type="text"
+          class="form-control border-0 search-bar"
+          placeholder="Search for a company or person..."
+          (input)="onSearch($event)"
+        />
+      </div>
     </div>
   </div>
 
-  <!-- Person matches -->
-  <div class="person-result" *ngFor="let person of matchingPeople">
-    <div class="person-name">{{ person.name }}</div>
-    <div class="companies">
-      <h3>Can refer at:</h3>
-      <ul>
-        <li *ngFor="let company of person.companies">
-          <a [href]="company.careerPage" target="_blank">{{ company.name }}</a>
-        </li>
-      </ul>
+  <!-- Form to Add New Referral -->
+  <div class="row mb-4">
+    <div class="col">
+      <div class="card shadow-sm border-0 animate-card">
+        <div class="card-header bg-gradient text-white">
+          <h3 class="card-title mb-0">Add New Referral</h3>
+        </div>
+        <div class="card-body">
+          <form #referralForm="ngForm" (ngSubmit)="addReferral()" novalidate>
+            <div class="mb-3">
+              <label for="personName" class="form-label">Person Name:</label>
+              <input
+                type="text"
+                class="form-control"
+                id="personName"
+                [(ngModel)]="newPersonName"
+                name="personName"
+                required
+                #personName="ngModel"
+                [ngClass]="{
+                  'is-invalid':
+                    personName.invalid &&
+                    (personName.dirty || personName.touched)
+                }"
+              />
+              <div
+                *ngIf="
+                  personName.invalid && (personName.dirty || personName.touched)
+                "
+                class="invalid-feedback"
+              >
+                Person name is required.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="companyName" class="form-label">Company Name:</label>
+              <input
+                type="text"
+                class="form-control"
+                id="companyName"
+                [(ngModel)]="newCompanyName"
+                name="companyName"
+                required
+                #companyName="ngModel"
+                [ngClass]="{
+                  'is-invalid':
+                    companyName.invalid &&
+                    (companyName.dirty || companyName.touched)
+                }"
+              />
+              <div
+                *ngIf="
+                  companyName.invalid &&
+                  (companyName.dirty || companyName.touched)
+                "
+                class="invalid-feedback"
+              >
+                Company name is required.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="careerPage" class="form-label"
+                >Career Page URL:</label
+              >
+              <input
+                type="url"
+                class="form-control"
+                id="careerPage"
+                [(ngModel)]="newCareerPage"
+                name="careerPage"
+                required
+                #careerPage="ngModel"
+                [ngClass]="{
+                  'is-invalid':
+                    careerPage.invalid &&
+                    (personName.dirty || personName.touched)
+                }"
+              />
+              <div
+                *ngIf="
+                  careerPage.invalid && (careerPage.dirty || careerPage.touched)
+                "
+                class="invalid-feedback"
+              >
+                Career page URL is required.
+              </div>
+            </div>
+            <button
+              type="submit"
+              class="btn btn-primary btn-gradient"
+              [disabled]="referralForm.invalid"
+            >
+              Add Referral
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="row" *ngIf="showResults">
+    <!-- Company Matches -->
+    <div class="col-12 mb-3" *ngFor="let company of matchingCompanies">
+      <div class="card shadow-sm border-0 animate-card">
+        <div class="card-body">
+          <h5 class="card-title text-gradient">{{ company.name }}</h5>
+          <p class="card-text">
+            <a
+              [href]="company.careerPage"
+              target="_blank"
+              class="text-primary career-link"
+            >
+              {{ company.careerPage }}
+              <i class="fas fa-external-link-alt ms-1"></i>
+            </a>
+          </p>
+          <div class="referrals" *ngIf="company.referrals.length > 0">
+            <h6 class="text-muted">Referrals:</h6>
+            <ul class="list-group list-group-flush">
+              <li
+                class="list-group-item d-flex align-items-center"
+                *ngFor="let referral of company.referrals"
+              >
+                <i class="fas fa-user-circle me-2 text-primary"></i>
+                <span>{{ referral }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Person Matches -->
+    <div class="col-12 mb-3" *ngFor="let person of matchingPeople">
+      <div class="card shadow-sm border-0 animate-card">
+        <div class="card-body">
+          <h5 class="card-title text-gradient">{{ person.name }}</h5>
+          <div class="companies">
+            <h6 class="text-muted">Can refer at:</h6>
+            <ul class="list-group list-group-flush">
+              <li
+                class="list-group-item d-flex align-items-center"
+                *ngFor="let company of person.companies"
+              >
+                <i class="fas fa-building me-2 text-primary"></i>
+                <a
+                  [href]="company.careerPage"
+                  target="_blank"
+                  class="text-primary career-link"
+                >
+                  {{ company.name }}
+                  <i class="fas fa-external-link-alt ms-1"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

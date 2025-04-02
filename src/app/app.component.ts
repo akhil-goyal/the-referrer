@@ -1,13 +1,18 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { ReferralSearchComponent } from './referral-search/referral-search.component';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router'; // Import RouterModule
 
 @Component({
   selector: 'app-root',
-  imports: [ReferralSearchComponent],
+  imports: [RouterModule, CommonModule, FormsModule], // Add RouterModule to imports
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  title = 'the-referrer';
+  constructor(private router: Router) {}
+
+  isActive(route: string): boolean {
+    return this.router.url === route;
+  }
 }
