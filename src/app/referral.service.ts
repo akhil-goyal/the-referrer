@@ -200,6 +200,30 @@ export class ReferralService {
         },
       ],
     },
+    {
+      name: 'Davinder Saggu',
+      companies: [
+        {
+          name: 'Ross Video',
+          careerPage:
+            'https://us231.dayforcehcm.com/CandidatePortal/en-US/rossvideo',
+        },
+        {
+          name: 'Bank of Canada',
+          careerPage:
+            'https://careers.bankofcanada.ca/go/All-Job-Opportunities/2400817/?locale=en_US',
+        },
+        {
+          name: 'TD Bank',
+          careerPage: 'https://td.wd3.myworkdayjobs.com/en-US/TD_Bank_Careers',
+        },
+        {
+          name: 'Ford',
+          careerPage:
+            'https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/jobs?location=Canada&locationId=300000000425151&locationLevel=country&mode=location',
+        },
+      ],
+    },
   ];
 
   constructor() {}
