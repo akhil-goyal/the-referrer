@@ -30,6 +30,22 @@
             >Referrals</a
           >
         </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="/companies"
+            [ngClass]="{ active: isActive('/companies') }"
+            >Companies</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="/referrers"
+            [ngClass]="{ active: isActive('/referrers') }"
+            >Referrers</a
+          >
+        </li>
       </ul>
     </div>
   </div>

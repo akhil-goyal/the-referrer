@@ -118,6 +118,15 @@ export class ReferralService {
       ],
     },
     {
+      name: 'Yashesh Dave',
+      companies: [
+        {
+          name: 'Ontario Power Group',
+          careerPage: 'https://www.opg.com/careers/',
+        },
+      ],
+    },
+    {
       name: 'Mukul',
       companies: [
         {

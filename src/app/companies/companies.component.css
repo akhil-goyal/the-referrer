@@ -1,0 +1,49 @@
+.container {
+  max-width: 800px;
+}
+
+.card {
+  border-radius: 15px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.career-link {
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.career-link:hover {
+  color: #2a5298 !important;
+  text-decoration: underline;
+}
+
+.list-group-item {
+  border: none;
+  padding: 10px 0;
+}
+
+.animate-card {
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
