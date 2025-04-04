@@ -1,8 +1,146 @@
+/* Import Font Awesome and particles.js */
 @import "@fortawesome/fontawesome-free/css/all.min.css";
+@import "particles.js/particles";
 
 body {
   margin: 0;
-  font-family: "Arial", sans-serif;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: "Orbitron", sans-serif; /* Futuristic font */
+  background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+  color: #e0e0e0;
   min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Rest of the CSS remains the same */
+#particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.card {
+  background-color: #2a2a2a;
+  border: none;
+  border-radius: 15px;
+}
+
+.card-header {
+  background: linear-gradient(90deg, #333333, #222222);
+  color: #ffffff;
+}
+
+.list-group-item {
+  background-color: transparent;
+  color: #e0e0e0;
+}
+
+.form-control {
+  background-color: #333333;
+  color: #e0e0e0;
+  border: 1px solid #444444;
+}
+
+.form-control:focus {
+  background-color: #333333;
+  color: #e0e0e0;
+  border-color: #00ffcc;
+  box-shadow: 0 0 10px #00ffcc;
+}
+
+.btn {
+  border-radius: 25px;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #00ffcc, #00ccff);
+  border: none;
+  color: #1a1a1a;
+  text-shadow: 0 0 5px #ffffff;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #00ccff, #00ffcc);
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px #00ffcc;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #00ffcc, #00ccff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 5px #00ffcc;
+}
+
+.career-link {
+  color: #00ffcc;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.career-link:hover {
+  color: #00ccff;
+  text-decoration: underline;
+  text-shadow: 0 0 10px #00ccff;
+}
+
+.input-group {
+  border-radius: 25px;
+  overflow: hidden;
+  background-color: #333333;
+  transition: box-shadow 0.3s ease;
+}
+
+.input-group:hover {
+  box-shadow: 0 0 15px #00ffcc;
+}
+
+.input-group-text {
+  background-color: #333333;
+  color: #00ffcc;
+}
+
+.navbar {
+  background: linear-gradient(90deg, #222222, #1a1a1a);
+}
+
+.navbar-brand,
+.nav-link {
+  color: #e0e0e0 !important;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #00ffcc !important;
+  text-shadow: 0 0 5px #00ffcc;
+}
+
+.nav-link.active {
+  color: #00ccff !important;
+  font-weight: bold;
+  text-shadow: 0 0 5px #00ccff;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 255, 0.3), 0 0 20px #00ffcc;
+}
+
+.animate-card {
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
