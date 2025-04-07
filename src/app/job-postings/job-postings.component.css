@@ -1,37 +1,58 @@
 .container {
-    max-width: 800px;
-  }
-  
-  .card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    transition: box-shadow 0.3s ease;
-  }
-  
-  .card:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .card-title {
-    font-size: 1.25rem;
-    color: #333;
-  }
-  
-  .card-text {
-    font-size: 0.95rem;
-    color: #555;
-  }
-  
-  .card-text a {
-    color: #007bff;
-    text-decoration: none;
-  }
-  
-  .card-text a:hover {
-    text-decoration: underline;
-  }
-  
-  .fas {
-    font-size: 0.8rem;
-    margin-left: 4px;
-  }
+  max-width: 800px;
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.card-text {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.card-text a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.card-text a:hover {
+  text-decoration: underline;
+}
+
+.fas {
+  font-size: 0.8rem;
+  margin-left: 4px;
+}
+
+.btn-info {
+  background-color: #000000;
+  border: 1px solid black;
+  color: #ffffff;
+}
+
+.active > .page-link,
+.page-link.active {
+  background-color: #71074a;
+  border: 1px solid #71074a;
+}
+
+.page-link {
+  color: #71074a;
+}
+
+.active > .page-link,
+.page-link.active {
+  color: #ffffff;
+}
