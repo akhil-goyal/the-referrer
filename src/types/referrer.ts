@@ -12,6 +12,7 @@ export interface Referrer {
 }
 
 export interface JobPosting {
+  id: string; // Add ID field
   title: string;
   url: string;
   companyName: string;
@@ -19,4 +20,5 @@ export interface JobPosting {
   timestamp: number;
   query: string;
   location: string;
+  description: string;
 }

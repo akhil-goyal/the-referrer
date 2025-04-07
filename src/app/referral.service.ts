@@ -90,7 +90,19 @@ export class ReferralService {
   getJobPostings(): Observable<JobPosting[]> {
     const jobPostingsCollection = collection(this.firestore, 'jobPostings');
     return from(getDocs(query(jobPostingsCollection))).pipe(
-      map((snapshot) => snapshot.docs.map((doc) => doc.data() as JobPosting))
+      map(
+        (snapshot) =>
+          snapshot.docs.map((doc) => ({
+            id: doc.id, // Include the document ID
+            ...doc.data(),
+          })) as JobPosting[]
+      )
     );
+  }
+
+  async deleteJobPosting(jobId: string) {
+    const jobPostingsCollection = collection(this.firestore, 'jobPostings');
+    const docRef = doc(jobPostingsCollection, jobId);
+    await deleteDoc(docRef);
   }
 }

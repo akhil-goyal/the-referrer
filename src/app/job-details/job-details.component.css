@@ -1,0 +1,22 @@
+.container {
+  max-width: 800px;
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.card-text a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.card-text a:hover {
+  text-decoration: underline;
+}
+
+.fas {
+  font-size: 0.8rem;
+  margin-left: 4px;
+}

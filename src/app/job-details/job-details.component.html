@@ -1,0 +1,34 @@
+<div class="container py-4">
+  <ng-container *ngIf="jobPosting$ | async as job; else loading">
+    <h2 class="mb-4">{{ job.title }}</h2>
+    <div class="card">
+      <div class="card-body">
+        <p class="card-text">
+          <strong>Company:</strong> {{ job.companyName }}<br />
+          <strong>Location:</strong> {{ job.location }}<br />
+          <strong>Career Page:</strong>
+          <a [href]="job.careerPage" target="_blank">
+            {{ job.careerPage }}
+            <i class="fas fa-arrow-up-right-from-square"></i> </a
+          ><br />
+          <strong>Job URL:</strong>
+          <a [href]="job.url" target="_blank">
+            {{ job.url }} <i class="fas fa-arrow-up-right-from-square"></i> </a
+          ><br />
+          <strong>Found on:</strong> {{ formatDate(job.timestamp) }}<br />
+          <strong>Query:</strong> {{ job.query }}<br />
+          <strong>Description:</strong>
+        </p>
+
+        <p>{{ job.description || "No description available." }}</p>
+        <a routerLink="/job-postings" class="btn btn-secondary"
+          >Back to Job Postings</a
+        >
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="alert alert-info">Loading job details...</div>
+  </ng-template>
+</div>

@@ -9,9 +9,9 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
   console.log("Running daily job posting check...");
-  const searchQuery = "Developer";
+  const searchQuery = "Frontend Developer";
   const locationFilter = "Canada";
 
   const referrersSnapshot = await db.collection("referrals").get();
@@ -69,15 +69,33 @@ cron.schedule("* * * * *", async () => {
             timeout: 15000,
           });
 
-          const location = await page.evaluate(() => {
+          const jobDetails = await page.evaluate(() => {
             const locationElement = document.querySelector(
               '.location, .job-location, [class*="location"], [data-location]'
             );
-            return locationElement ? locationElement.textContent.trim() : "";
+            const descriptionElement = document.querySelector(
+              '.description, .job-description, [class*="description"], [id*="description"]'
+            );
+            return {
+              location: locationElement
+                ? locationElement.textContent.trim()
+                : "",
+              description: descriptionElement
+                ? descriptionElement.textContent.trim()
+                : "",
+            };
           });
 
-          if (location.toLowerCase().includes(locationFilter.toLowerCase())) {
-            foundJobs.push({ ...job, location });
+          if (
+            jobDetails.location
+              .toLowerCase()
+              .includes(locationFilter.toLowerCase())
+          ) {
+            foundJobs.push({
+              ...job,
+              location: jobDetails.location,
+              description: jobDetails.description,
+            });
           }
 
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -96,6 +114,7 @@ cron.schedule("* * * * *", async () => {
           companyName,
           careerPage,
           location: job.location,
+          description: job.description, // Add description
           timestamp: Date.now(),
           query: searchQuery,
         };
