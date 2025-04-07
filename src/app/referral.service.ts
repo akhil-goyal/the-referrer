@@ -84,6 +84,10 @@ export class ReferralService {
           careerPage: 'https://www.metrolinx.com/en/about-us/careers',
         },
         { name: 'ONXpress', careerPage: 'https://www.onxpress.com/careers' },
+        {
+          name: 'TD Bank',
+          careerPage: 'https://td.wd3.myworkdayjobs.com/en-US/TD_Bank_Careers',
+        },
       ],
     },
     {
