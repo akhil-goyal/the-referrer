@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ReferralService } from '../referral.service';
 import { RouterModule } from '@angular/router';
-import { JobPosting } from './../../types/referrer';
+import { JobPosting } from '../types/referrer';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -17,8 +17,10 @@ import { FormsModule } from '@angular/forms';
 export class JobPostingsComponent implements OnInit {
   jobPostings$!: Observable<JobPosting[]>;
   filteredJobPostings$!: Observable<JobPosting[]>;
+  totalPostings: number = 0; // Add totalPostings to track unfiltered count
   searchQuery: string = '';
-  locationFilter: string = ''; // Add location filter
+  locationFilter: string = '';
+  companyFilter: string = '';
   sortBy: string = 'timestamp';
   sortOrder: 'asc' | 'desc' = 'desc';
   currentPage: number = 1;
@@ -30,16 +32,24 @@ export class JobPostingsComponent implements OnInit {
 
   ngOnInit() {
     this.jobPostings$ = this.referralService.getJobPostings();
+    this.jobPostings$.subscribe((postings) => {
+      this.totalPostings = postings.length; // Set totalPostings
+    });
     this.applyFiltersAndSorting();
   }
 
   onSearch() {
-    this.currentPage = 1; // Reset to first page on search
+    this.currentPage = 1;
     this.applyFiltersAndSorting();
   }
 
   onLocationFilter() {
-    this.currentPage = 1; // Reset to first page on location filter change
+    this.currentPage = 1;
+    this.applyFiltersAndSorting();
+  }
+
+  onCompanyFilter() {
+    this.currentPage = 1;
     this.applyFiltersAndSorting();
   }
 
@@ -90,6 +100,15 @@ export class JobPostingsComponent implements OnInit {
             : true
         );
 
+        // Apply company filter
+        filtered = filtered.filter((posting) =>
+          this.companyFilter
+            ? posting.companyName &&
+              posting.companyName.toLowerCase() ===
+                this.companyFilter.toLowerCase()
+            : true
+        );
+
         // Update total items for pagination
         this.totalItems = filtered.length;
 
@@ -124,6 +143,9 @@ export class JobPostingsComponent implements OnInit {
     if (confirm('Are you sure you want to delete this job posting?')) {
       await this.referralService.deleteJobPosting(jobId);
       this.jobPostings$ = this.referralService.getJobPostings();
+      this.jobPostings$.subscribe((postings) => {
+        this.totalPostings = postings.length; // Update totalPostings after deletion
+      });
       this.applyFiltersAndSorting();
     }
   }
