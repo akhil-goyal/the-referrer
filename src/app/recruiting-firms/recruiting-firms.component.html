@@ -3,11 +3,14 @@
   <div class="card">
     <div class="card-body">
       <ul class="list-unstyled">
-        <li *ngFor="let firm of recruitingFirms$ | async" class="mb-2">
+        <li
+          *ngFor="let firm of recruitingFirms$ | async; index as i"
+          class="mb-2"
+        >
           <i class="fas fa-briefcase me-2"></i>
-          <a href="javascript:void(0)" (click)="openModal(firm)">{{
-            firm.name
-          }}</a>
+          <a href="javascript:void(0)" (click)="openModal(firm)"
+            >{{ i + 1 }}. {{ firm.name }}</a
+          >
         </li>
       </ul>
       <p *ngIf="(recruitingFirms$ | async)?.length === 0" class="text-muted">
