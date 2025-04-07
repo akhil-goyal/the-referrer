@@ -1,0 +1,67 @@
+<div class="container py-4">
+  <ng-container *ngIf="jobPosting$ | async as job; else loading">
+    <h2 class="mb-4">{{ job.title }}</h2>
+    <div class="card mb-4">
+      <div class="card-body">
+        <p class="card-text">
+          <strong>Company:</strong> {{ job.companyName }}<br />
+          <strong>Location:</strong> {{ job.location || "Not specified" }}<br />
+          <strong>Added to Database:</strong> {{ formatDate(job.timestamp)
+          }}<br />
+          <strong>Career Page:</strong>
+          <a [href]="job.careerPage" target="_blank">
+            {{ job.careerPage }}
+            <i class="fas fa-arrow-up-right-from-square"></i> </a
+          ><br />
+          <strong>Job URL:</strong>
+          <a [href]="job.url" target="_blank">
+            {{ job.url }} <i class="fas fa-arrow-up-right-from-square"></i> </a
+          ><br />
+          <strong>Description:</strong>
+        </p>
+
+        <p>{{ job.description || "No description available." }}</p>
+        <a routerLink="/job-postings" class="btn btn-secondary"
+          >Back to Job Postings</a
+        >
+      </div>
+    </div>
+
+    <!-- More positions from this company -->
+    <h3 class="mb-4">More Positions from {{ job.companyName }}</h3>
+    <ng-container *ngIf="otherJobs$ | async as otherJobs">
+      <div *ngIf="otherJobs.length === 0" class="alert alert-info">
+        No other positions available from this company.
+      </div>
+      <div *ngIf="otherJobs.length > 0" class="row">
+        <div *ngFor="let otherJob of otherJobs" class="col-md-4 mb-3">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title">
+                <a [routerLink]="['/job-details', otherJob.id]">{{
+                  otherJob.title
+                }}</a>
+              </h5>
+              <p class="card-text">
+                <strong>Location:</strong>
+                {{ otherJob.location || "Not specified" }}<br />
+                <strong>Found on:</strong> {{ formatDate(otherJob.timestamp) }}
+              </p>
+              <a
+                [href]="otherJob.url"
+                target="_blank"
+                class="btn btn-primary btn-sm"
+              >
+                View Job Listing
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="alert alert-info">Loading job details...</div>
+  </ng-template>
+</div>

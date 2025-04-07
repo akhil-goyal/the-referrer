@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ReferralService } from '../referral.service';
 import { RouterModule } from '@angular/router';
-import { JobPosting } from '../types/referrer';
+import { JobPosting } from './../../types/referrer';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -17,10 +17,12 @@ import { FormsModule } from '@angular/forms';
 export class JobPostingsComponent implements OnInit {
   jobPostings$!: Observable<JobPosting[]>;
   filteredJobPostings$!: Observable<JobPosting[]>;
-  totalPostings: number = 0; // Add totalPostings to track unfiltered count
+  totalPostings: number = 0;
   searchQuery: string = '';
   locationFilter: string = '';
   companyFilter: string = '';
+  uniqueLocations: string[] = [];
+  uniqueCompanies: string[] = []; // Add unique companies for dropdown
   sortBy: string = 'timestamp';
   sortOrder: 'asc' | 'desc' = 'desc';
   currentPage: number = 1;
@@ -33,7 +35,15 @@ export class JobPostingsComponent implements OnInit {
   ngOnInit() {
     this.jobPostings$ = this.referralService.getJobPostings();
     this.jobPostings$.subscribe((postings) => {
-      this.totalPostings = postings.length; // Set totalPostings
+      this.totalPostings = postings.length;
+      this.uniqueLocations = [
+        ...new Set(
+          postings.map((posting) => posting.location || 'Not specified')
+        ),
+      ].sort();
+      this.uniqueCompanies = [
+        ...new Set(postings.map((posting) => posting.companyName)),
+      ].sort();
     });
     this.applyFiltersAndSorting();
   }
@@ -94,9 +104,8 @@ export class JobPostingsComponent implements OnInit {
         filtered = filtered.filter((posting) =>
           this.locationFilter
             ? posting.location &&
-              posting.location
-                .toLowerCase()
-                .includes(this.locationFilter.toLowerCase())
+              posting.location.toLowerCase() ===
+                this.locationFilter.toLowerCase()
             : true
         );
 
@@ -144,7 +153,15 @@ export class JobPostingsComponent implements OnInit {
       await this.referralService.deleteJobPosting(jobId);
       this.jobPostings$ = this.referralService.getJobPostings();
       this.jobPostings$.subscribe((postings) => {
-        this.totalPostings = postings.length; // Update totalPostings after deletion
+        this.totalPostings = postings.length;
+        this.uniqueLocations = [
+          ...new Set(
+            postings.map((posting) => posting.location || 'Not specified')
+          ),
+        ].sort();
+        this.uniqueCompanies = [
+          ...new Set(postings.map((posting) => posting.companyName)),
+        ].sort();
       });
       this.applyFiltersAndSorting();
     }

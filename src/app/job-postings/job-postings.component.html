@@ -1,9 +1,8 @@
 <div class="container py-4">
   <h2 class="mb-4">Job Postings</h2>
   <p>Total Job Postings in Database: {{ totalPostings }}</p>
-  <!-- Display total postings -->
 
-  <!-- Search and Location Filter -->
+  <!-- Search, Location, and Company Filters -->
   <div class="mb-4 d-flex gap-3">
     <div class="input-group flex-grow-1">
       <input
@@ -16,16 +15,28 @@
       <button class="btn btn-primary" (click)="onSearch()">Search</button>
     </div>
     <div class="input-group flex-grow-1">
-      <input
-        type="text"
+      <select
         class="form-control"
-        placeholder="Filter by location..."
         [(ngModel)]="locationFilter"
-        (input)="onLocationFilter()"
-      />
-      <button class="btn btn-primary" (click)="onLocationFilter()">
-        Filter
-      </button>
+        (change)="onLocationFilter()"
+      >
+        <option value="">All Locations</option>
+        <option *ngFor="let location of uniqueLocations" [value]="location">
+          {{ location }}
+        </option>
+      </select>
+    </div>
+    <div class="input-group flex-grow-1">
+      <select
+        class="form-control"
+        [(ngModel)]="companyFilter"
+        (change)="onCompanyFilter()"
+      >
+        <option value="">All Companies</option>
+        <option *ngFor="let company of uniqueCompanies" [value]="company">
+          {{ company }}
+        </option>
+      </select>
     </div>
   </div>
 
@@ -94,6 +105,12 @@
           <div class="d-flex gap-2">
             <a [href]="job.url" target="_blank" class="btn btn-primary btn-sm">
               View Job Listing
+            </a>
+            <a
+              [routerLink]="['/job-posting-details', job.id]"
+              class="btn btn-info btn-sm"
+            >
+              Learn More
             </a>
             <button (click)="deleteJob(job.id)" class="btn btn-danger btn-sm">
               Delete
