@@ -214,6 +214,15 @@ export class ReferralService {
       ],
     },
     {
+      name: 'Sherry (via Davinder Saggu)',
+      companies: [
+        {
+          name: 'TD',
+          careerPage: 'https://td.wd3.myworkdayjobs.com/en-US/TD_Bank_Careers',
+        },
+      ],
+    },
+    {
       name: 'Davinder Saggu',
       companies: [
         {
