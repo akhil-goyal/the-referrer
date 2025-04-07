@@ -1,0 +1,40 @@
+<div class="container py-4">
+  <h2 class="mb-4">Job Postings</h2>
+
+  <!-- Use *ngIf with 'as' to assign the async result to a variable -->
+  <ng-container *ngIf="jobPostings$ | async as jobPostings">
+    <!-- No job postings -->
+    <div *ngIf="jobPostings.length === 0" class="alert alert-warning">
+      No job postings found. Please check back later.
+    </div>
+
+    <!-- Job postings list -->
+    <div *ngIf="jobPostings.length > 0">
+      <div *ngFor="let job of jobPostings" class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">{{ job.title }}</h5>
+          <p class="card-text">
+            <strong>Company:</strong> {{ job.companyName }}<br />
+            <strong>Career Page:</strong>
+            <a [href]="job.careerPage" target="_blank">
+              {{ job.careerPage }}
+              <i class="fas fa-arrow-up-right-from-square"></i> </a
+            ><br />
+            <strong>Job URL:</strong>
+            <a [href]="job.url" target="_blank">
+              {{ job.url }}
+              <i class="fas fa-arrow-up-right-from-square"></i> </a
+            ><br />
+            <strong>Found on:</strong> {{ formatDate(job.timestamp) }}<br />
+            <strong>Query:</strong> {{ job.query }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Loading state -->
+  <div *ngIf="!(jobPostings$ | async)" class="alert alert-info">
+    Loading job postings...
+  </div>
+</div>

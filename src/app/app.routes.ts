@@ -4,6 +4,7 @@ import { ReferralSearchComponent } from './referral-search/referral-search.compo
 import { CompaniesComponent } from './companies/companies.component';
 import { ReferrersComponent } from './referrers/referrers.component';
 import { RecruitingFirmsComponent } from './recruiting-firms/recruiting-firms.component';
+import { JobPostingsComponent } from './job-postings/job-postings.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -11,5 +12,6 @@ export const routes: Routes = [
   { path: 'companies', component: CompaniesComponent },
   { path: 'referrers', component: ReferrersComponent },
   { path: 'recruiting-firms', component: RecruitingFirmsComponent },
+  { path: 'job-postings', component: JobPostingsComponent },
   { path: '**', redirectTo: '' },
 ];

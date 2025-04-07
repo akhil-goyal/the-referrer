@@ -10,7 +10,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Referrer } from './../types/referrer';
+import { Referrer, JobPosting } from './../types/referrer';
 
 @Injectable({
   providedIn: 'root',
@@ -87,10 +87,10 @@ export class ReferralService {
     );
   }
 
-  getJobPostings(): Observable<any[]> {
+  getJobPostings(): Observable<JobPosting[]> {
     const jobPostingsCollection = collection(this.firestore, 'jobPostings');
     return from(getDocs(query(jobPostingsCollection))).pipe(
-      map((snapshot) => snapshot.docs.map((doc) => doc.data()))
+      map((snapshot) => snapshot.docs.map((doc) => doc.data() as JobPosting))
     );
   }
 }
