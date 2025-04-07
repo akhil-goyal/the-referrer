@@ -3,11 +3,13 @@
   <div class="card">
     <div class="card-body">
       <ul class="list-unstyled">
-        <li *ngFor="let referrer of referrers" class="mb-2">
+        <li *ngFor="let referrer of referrers$ | async" class="mb-2">
           <i class="fas fa-user me-2"></i>{{ referrer }}
         </li>
       </ul>
-      <p *ngIf="!referrers.length" class="text-muted">No referrers found.</p>
+      <p *ngIf="(referrers$ | async)?.length === 0" class="text-muted">
+        No referrers found.
+      </p>
     </div>
   </div>
 </div>
