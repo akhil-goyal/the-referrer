@@ -93,6 +93,45 @@
             A valid URL is required (e.g., https://example.com).
           </div>
         </div>
+        <!-- Contact Information -->
+        <div class="mb-3">
+          <h6>Contact Information (Optional)</h6>
+          <div class="row">
+            <div class="col-md-4">
+              <label for="newPhone" class="form-label">Phone</label>
+              <input
+                type="tel"
+                id="newPhone"
+                class="form-control"
+                [(ngModel)]="newPhone"
+                name="newPhone"
+                placeholder="e.g., +1234567890"
+              />
+            </div>
+            <div class="col-md-4">
+              <label for="newEmail" class="form-label">Email</label>
+              <input
+                type="email"
+                id="newEmail"
+                class="form-control"
+                [(ngModel)]="newEmail"
+                name="newEmail"
+                placeholder="e.g., example@domain.com"
+              />
+            </div>
+            <div class="col-md-4">
+              <label for="newLinkedIn" class="form-label">LinkedIn</label>
+              <input
+                type="url"
+                id="newLinkedIn"
+                class="form-control"
+                [(ngModel)]="newLinkedIn"
+                name="newLinkedIn"
+                placeholder="e.g., https://linkedin.com/in/username"
+              />
+            </div>
+          </div>
+        </div>
         <button
           type="submit"
           class="btn btn-primary"
@@ -131,6 +170,28 @@
     <div *ngFor="let person of matchingPeople" class="card mb-3">
       <div class="card-body">
         <h5 class="card-title">{{ person.name }}</h5>
+        <div class="mb-2">
+          <!-- Contact Icons for Person Matches -->
+          <span class="me-2" *ngIf="person.phone">
+            <a [href]="'tel:' + person.phone" target="_blank" class="text-dark">
+              <i class="fas fa-phone me-1" title="Phone"></i>
+            </a>
+          </span>
+          <span class="me-2" *ngIf="person.email">
+            <a
+              [href]="'mailto:' + person.email"
+              target="_blank"
+              class="text-dark"
+            >
+              <i class="fas fa-envelope me-1" title="Email"></i>
+            </a>
+          </span>
+          <span class="me-2" *ngIf="person.linkedin">
+            <a [href]="person.linkedin" target="_blank" class="text-dark">
+              <i class="fab fa-linkedin me-1" title="LinkedIn"></i>
+            </a>
+          </span>
+        </div>
         <div>
           <h6 class="card-subtitle mb-2 text-muted">Can refer at</h6>
           <ul class="list-unstyled">

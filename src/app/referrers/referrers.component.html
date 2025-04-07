@@ -9,6 +9,30 @@
         >
           <i class="fas fa-user me-2"></i>
           <span class="flex-grow-1">{{ referrer.name }}</span>
+          <!-- Contact Icons -->
+          <span class="me-2" *ngIf="referrer.phone">
+            <a
+              [href]="'tel:' + referrer.phone"
+              target="_blank"
+              class="text-dark"
+            >
+              <i class="fas fa-phone me-1" title="Phone"></i>
+            </a>
+          </span>
+          <span class="me-2" *ngIf="referrer.email">
+            <a
+              [href]="'mailto:' + referrer.email"
+              target="_blank"
+              class="text-dark"
+            >
+              <i class="fas fa-envelope me-1" title="Email"></i>
+            </a>
+          </span>
+          <span class="me-2" *ngIf="referrer.linkedin">
+            <a [href]="referrer.linkedin" target="_blank" class="text-dark">
+              <i class="fab fa-linkedin me-1" title="LinkedIn"></i>
+            </a>
+          </span>
           <button
             class="btn btn-sm btn-outline-primary me-2"
             (click)="openEditModal(referrer)"
@@ -91,6 +115,46 @@
                 name="referrerName"
                 required
               />
+            </div>
+
+            <!-- Contact Information -->
+            <div class="mb-3">
+              <h6>Contact Information</h6>
+              <div class="row">
+                <div class="col-md-4">
+                  <label for="phone" class="form-label">Phone</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    class="form-control"
+                    [(ngModel)]="selectedReferrer.phone"
+                    name="phone"
+                    placeholder="e.g., +1234567890"
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label for="email" class="form-label">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    class="form-control"
+                    [(ngModel)]="selectedReferrer.email"
+                    name="email"
+                    placeholder="e.g., example@domain.com"
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label for="linkedin" class="form-label">LinkedIn</label>
+                  <input
+                    type="url"
+                    id="linkedin"
+                    class="form-control"
+                    [(ngModel)]="selectedReferrer.linkedin"
+                    name="linkedin"
+                    placeholder="e.g., https://linkedin.com/in/username"
+                  />
+                </div>
+              </div>
             </div>
 
             <!-- Companies List -->

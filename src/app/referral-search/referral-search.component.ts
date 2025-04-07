@@ -20,7 +20,10 @@ export class ReferralSearchComponent implements OnInit {
   newPersonName: string = '';
   newCompanyName: string = '';
   newCareerPage: string = '';
-  successMessage: string = ''; // Add success message
+  newPhone: string = '';
+  newEmail: string = '';
+  newLinkedIn: string = '';
+  successMessage: string = '';
 
   referrals$!: Observable<any[]>;
 
@@ -85,13 +88,28 @@ export class ReferralSearchComponent implements OnInit {
           this.newCareerPage
         )
         .then(() => {
-          this.successMessage = `Successfully added ${this.newPersonName} as a referrer for ${this.newCompanyName}!`;
-          this.newPersonName = '';
-          this.newCompanyName = '';
-          this.newCareerPage = '';
-          this.onSearch({ target: { value: this.searchTerm } } as any);
-          // Clear success message after 3 seconds
-          setTimeout(() => (this.successMessage = ''), 3000);
+          // Update the newly added referrer with contact info
+          this.referralService
+            .updateReferrer(this.newPersonName, {
+              name: this.newPersonName,
+              companies: [
+                { name: this.newCompanyName, careerPage: this.newCareerPage },
+              ],
+              phone: this.newPhone || '',
+              email: this.newEmail || '',
+              linkedin: this.newLinkedIn || '',
+            })
+            .then(() => {
+              this.successMessage = `Successfully added ${this.newPersonName} as a referrer for ${this.newCompanyName}!`;
+              this.newPersonName = '';
+              this.newCompanyName = '';
+              this.newCareerPage = '';
+              this.newPhone = '';
+              this.newEmail = '';
+              this.newLinkedIn = '';
+              this.onSearch({ target: { value: this.searchTerm } } as any);
+              setTimeout(() => (this.successMessage = ''), 3000);
+            });
         })
         .catch((err) => {
           console.error('Error adding referral:', err);
