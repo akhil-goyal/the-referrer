@@ -1,0 +1,58 @@
+<div class="container py-4">
+  <h1 class="mb-4">Recruiting Firms</h1>
+  <div class="card">
+    <div class="card-body">
+      <ul class="list-unstyled">
+        <li *ngFor="let firm of recruitingFirms$ | async" class="mb-2">
+          <i class="fas fa-briefcase me-2"></i>
+          <a href="javascript:void(0)" (click)="openModal(firm)">{{
+            firm.name
+          }}</a>
+        </li>
+      </ul>
+      <p *ngIf="(recruitingFirms$ | async)?.length === 0" class="text-muted">
+        No recruiting firms found.
+      </p>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div
+    *ngIf="selectedFirm"
+    class="modal fade show d-block"
+    tabindex="-1"
+    role="dialog"
+    style="background-color: rgba(0, 0, 0, 0.5)"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ selectedFirm.name }}</h5>
+          <button
+            type="button"
+            class="btn-close"
+            (click)="closeModal()"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            <strong>Website: </strong>
+            <a [href]="selectedFirm.url" target="_blank"
+              >{{ selectedFirm.url }} <i class="fas fa-external-link-alt"></i
+            ></a>
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeModal()"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

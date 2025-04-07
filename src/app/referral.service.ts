@@ -16,7 +16,7 @@ import { map } from 'rxjs/operators';
 export class ReferralService {
   constructor(private firestore: Firestore) {}
 
-  // Get all referrals from Firestore as an Observable
+  // Existing methods for referrals
   getReferrals(): Observable<any[]> {
     const referralsCollection = collection(this.firestore, 'referrals');
     return from(getDocs(query(referralsCollection))).pipe(
@@ -24,7 +24,6 @@ export class ReferralService {
     );
   }
 
-  // Add or update a referral in Firestore
   async addOrUpdateReferral(
     personName: string,
     companyName: string,
@@ -33,7 +32,6 @@ export class ReferralService {
     const referralsCollection = collection(this.firestore, 'referrals');
     const docRef = doc(referralsCollection, personName);
 
-    // Fetch existing data
     const snapshot = await getDocs(query(referralsCollection));
     const existingPerson = snapshot.docs
       .find((doc) => doc.id.toLowerCase() === personName.toLowerCase())
@@ -58,5 +56,15 @@ export class ReferralService {
         companies: [{ name: companyName, careerPage: careerPage }],
       });
     }
+  }
+
+  getRecruitingFirms(): Observable<any[]> {
+    const recruitingFirmsCollection = collection(
+      this.firestore,
+      'recruitingFirms'
+    );
+    return from(getDocs(query(recruitingFirmsCollection))).pipe(
+      map((snapshot) => snapshot.docs.map((doc) => doc.data()))
+    );
   }
 }
