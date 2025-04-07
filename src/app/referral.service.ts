@@ -6,6 +6,7 @@ import {
   doc,
   getDocs,
   query,
+  deleteDoc,
 } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -16,7 +17,7 @@ import { map } from 'rxjs/operators';
 export class ReferralService {
   constructor(private firestore: Firestore) {}
 
-  // Existing methods for referrals
+  // Existing methods
   getReferrals(): Observable<any[]> {
     const referralsCollection = collection(this.firestore, 'referrals');
     return from(getDocs(query(referralsCollection))).pipe(
@@ -66,5 +67,72 @@ export class ReferralService {
     return from(getDocs(query(recruitingFirmsCollection))).pipe(
       map((snapshot) => snapshot.docs.map((doc) => doc.data()))
     );
+  }
+
+  async migrateRecruitingFirmsToFirestore() {
+    const recruitingFirmsCollection = collection(
+      this.firestore,
+      'recruitingFirms'
+    );
+    const snapshot = await getDocs(recruitingFirmsCollection);
+
+    const recruitingFirms = [
+      {
+        name: 'Quality IT Resourcing',
+        url: 'https://qitresourcing.com/jobopenings',
+      },
+      { name: 'Tundra Technical', url: 'https://jobs.tundratechnical.ca' },
+      { name: 'DevStaff', url: 'https://devstaff.ca' },
+      {
+        name: 'HireVouch',
+        url: 'https://www.hirevouch.com/jobs?vac.com/home#search',
+      },
+      { name: 'Adecco', url: 'https://candidate.adecco.com/home' },
+      { name: 'Allegis Group', url: 'https://www.allegisgroup.com/en/careers' },
+      { name: 'Randstad', url: 'https://www.randstad.ca' },
+      { name: 'Alquemy', url: 'https://careers.alquemy.com' },
+      { name: 'eTeam Inc', url: 'https://www.eteaminc.com/careers/' },
+      {
+        name: 'Persus Group',
+        url: 'https://talentmanagement.solution.wd3.myworkdayjobs.com/en-US/persus-careers/details/Software-Developer_R432339?locationRegionStateProvince=218a720b2e',
+      },
+      { name: 'LHH', url: 'https://www.lhh.com/us/en' },
+      { name: 'Axelon', url: 'https://www.axelon.com/' },
+      { name: 'LorvenTech', url: 'https://lorventech.com' },
+      { name: 'Akkodis', url: 'https://www.akkodis.com' },
+      { name: 'Dawn Infotek', url: 'https://dawninfotek.com/job-openings/' },
+      { name: 'Canonical', url: 'https://canonical.com/careers/all' },
+      { name: 'W3Global', url: 'https://www.w3global.com' },
+    ];
+
+    if (snapshot.empty) {
+      console.log('Migrating recruiting firms to Firestore...');
+      for (const firm of recruitingFirms) {
+        const docRef = doc(recruitingFirmsCollection, firm.name);
+        await setDoc(docRef, firm);
+      }
+      console.log('Recruiting firms migration complete!');
+    } else {
+      console.log(
+        'Recruiting firms already exist in Firestore, skipping migration.'
+      );
+    }
+  }
+
+  // New methods for edit and delete
+  async updateReferrer(originalName: string, updatedReferrer: any) {
+    const referralsCollection = collection(this.firestore, 'referrals');
+    // If the name has changed, delete the old document and create a new one
+    if (originalName !== updatedReferrer.name) {
+      await this.deleteReferrer(originalName);
+    }
+    const docRef = doc(referralsCollection, updatedReferrer.name);
+    await setDoc(docRef, updatedReferrer);
+  }
+
+  async deleteReferrer(referrerName: string) {
+    const referralsCollection = collection(this.firestore, 'referrals');
+    const docRef = doc(referralsCollection, referrerName);
+    await deleteDoc(docRef);
   }
 }

@@ -1,0 +1,10 @@
+/* src/referrers/referrers.component.css */
+.list-item {
+  padding: 8px 12px; /* Add padding for better hover area */
+  border-radius: 4px; /* Slight rounding for a polished look */
+  transition: background-color 0.2s ease; /* Smooth transition for hover effect */
+}
+
+.list-item:hover {
+  background-color: #f5f5f5; /* Light gray on hover */
+}

@@ -4,15 +4,176 @@
     <div class="card-body">
       <ul class="list-unstyled">
         <li
-          *ngFor="let referrer of referrers$ | async; index as i"
-          class="mb-2"
+          *ngFor="let referrer of referrers$ | async"
+          class="mb-2 d-flex align-items-center list-item"
         >
-          <i class="fas fa-user me-2"></i>{{ i + 1 }}. {{ referrer }}
+          <i class="fas fa-user me-2"></i>
+          <span class="flex-grow-1">{{ referrer.name }}</span>
+          <button
+            class="btn btn-sm btn-outline-primary me-2"
+            (click)="openEditModal(referrer)"
+          >
+            <i class="fas fa-pen-to-square"></i>
+          </button>
+          <button
+            class="btn btn-sm btn-outline-danger"
+            (click)="deleteReferrer(referrer.name)"
+          >
+            <i class="fas fa-trash-alt"></i>
+          </button>
         </li>
       </ul>
       <p *ngIf="(referrers$ | async)?.length === 0" class="text-muted">
         No referrers found.
       </p>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div
+    *ngIf="selectedReferrer"
+    class="modal fade show d-block"
+    tabindex="-1"
+    role="dialog"
+    style="background-color: rgba(0, 0, 0, 0.5)"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            Edit Referrer: {{ selectedReferrer.name }}
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            (click)="closeModal()"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <!-- Success/Error Messages -->
+          <div
+            *ngIf="successMessage"
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            {{ successMessage }}
+            <button
+              type="button"
+              class="btn-close"
+              (click)="successMessage = ''"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div
+            *ngIf="errorMessage"
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert"
+          >
+            {{ errorMessage }}
+            <button
+              type="button"
+              class="btn-close"
+              (click)="errorMessage = ''"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <!-- Edit Form -->
+          <form novalidate>
+            <div class="mb-3">
+              <label for="referrerName" class="form-label">Referrer Name</label>
+              <input
+                type="text"
+                id="referrerName"
+                class="form-control"
+                [(ngModel)]="selectedReferrer.name"
+                name="referrerName"
+                required
+              />
+            </div>
+
+            <!-- Companies List -->
+            <div class="mb-3">
+              <h6>Companies</h6>
+              <ul class="list-unstyled">
+                <li
+                  *ngFor="
+                    let company of selectedReferrer.companies;
+                    let i = index
+                  "
+                  class="mb-2 d-flex align-items-center"
+                >
+                  <i class="fas fa-building me-2"></i>
+                  <span class="flex-grow-1"
+                    >{{ company.name }} ({{ company.careerPage }})</span
+                  >
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeCompany(i)"
+                  >
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </li>
+              </ul>
+              <p
+                *ngIf="selectedReferrer.companies.length === 0"
+                class="text-muted"
+              >
+                No companies added.
+              </p>
+            </div>
+
+            <!-- Add New Company -->
+            <div class="mb-3">
+              <h6>Add New Company</h6>
+              <div class="row">
+                <div class="col-md-5">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Company Name"
+                    [(ngModel)]="newCompanyName"
+                    name="newCompanyName"
+                  />
+                </div>
+                <div class="col-md-5">
+                  <input
+                    type="url"
+                    class="form-control"
+                    placeholder="Career Page URL"
+                    [(ngModel)]="newCareerPage"
+                    name="newCareerPage"
+                    pattern="https?://.+"
+                  />
+                </div>
+                <div class="col-md-2">
+                  <button
+                    type="button"
+                    class="btn btn-primary w-100"
+                    (click)="addCompany()"
+                    [disabled]="!newCompanyName || !newCareerPage"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeModal()"
+          >
+            Close
+          </button>
+          <button type="button" class="btn btn-primary" (click)="saveChanges()">
+            Save Changes
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
