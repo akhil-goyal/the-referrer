@@ -14,6 +14,97 @@
     </div>
   </div>
 
+  <!-- Form to Add New Referrer -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h3 class="card-title h5">Add New Referrer</h3>
+      <!-- Success Message -->
+      <div
+        *ngIf="successMessage"
+        class="alert alert-success alert-dismissible fade show"
+        role="alert"
+      >
+        {{ successMessage }}
+        <button
+          type="button"
+          class="btn-close"
+          (click)="successMessage = ''"
+          aria-label="Close"
+        ></button>
+      </div>
+      <form #referralForm="ngForm" (ngSubmit)="addReferral()" novalidate>
+        <div class="mb-3">
+          <label for="personName" class="form-label">Referrer Name</label>
+          <input
+            type="text"
+            id="personName"
+            class="form-control"
+            [(ngModel)]="newPersonName"
+            name="personName"
+            required
+            #personName="ngModel"
+          />
+          <div
+            *ngIf="
+              personName.invalid && (personName.dirty || personName.touched)
+            "
+            class="text-danger small"
+          >
+            Referrer name is required.
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="companyName" class="form-label">Company Name</label>
+          <input
+            type="text"
+            id="companyName"
+            class="form-control"
+            [(ngModel)]="newCompanyName"
+            name="companyName"
+            required
+            #companyName="ngModel"
+          />
+          <div
+            *ngIf="
+              companyName.invalid && (companyName.dirty || companyName.touched)
+            "
+            class="text-danger small"
+          >
+            Company name is required.
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="careerPage" class="form-label">Career Page URL</label>
+          <input
+            type="url"
+            id="careerPage"
+            class="form-control"
+            [(ngModel)]="newCareerPage"
+            name="careerPage"
+            required
+            #careerPage="ngModel"
+            pattern="https?://.+"
+          />
+          <div
+            *ngIf="
+              careerPage.invalid && (careerPage.dirty || careerPage.touched)
+            "
+            class="text-danger small"
+          >
+            A valid URL is required (e.g., https://example.com).
+          </div>
+        </div>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="referralForm.invalid"
+        >
+          Add Referrer
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Results -->
   <div *ngIf="showResults">
     <!-- Company Matches -->

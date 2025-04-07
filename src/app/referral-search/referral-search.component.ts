@@ -20,6 +20,7 @@ export class ReferralSearchComponent implements OnInit {
   newPersonName: string = '';
   newCompanyName: string = '';
   newCareerPage: string = '';
+  successMessage: string = ''; // Add success message
 
   referrals$!: Observable<any[]>;
 
@@ -84,12 +85,18 @@ export class ReferralSearchComponent implements OnInit {
           this.newCareerPage
         )
         .then(() => {
+          this.successMessage = `Successfully added ${this.newPersonName} as a referrer for ${this.newCompanyName}!`;
           this.newPersonName = '';
           this.newCompanyName = '';
           this.newCareerPage = '';
           this.onSearch({ target: { value: this.searchTerm } } as any);
+          // Clear success message after 3 seconds
+          setTimeout(() => (this.successMessage = ''), 3000);
         })
-        .catch((err) => console.error('Error adding referral:', err));
+        .catch((err) => {
+          console.error('Error adding referral:', err);
+          this.successMessage = 'Error adding referrer. Please try again.';
+        });
     }
   }
 }
