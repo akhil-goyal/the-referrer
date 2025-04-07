@@ -17,12 +17,12 @@ import { FormsModule } from '@angular/forms';
 export class JobPostingsComponent implements OnInit {
   jobPostings$!: Observable<JobPosting[]>;
   filteredJobPostings$!: Observable<JobPosting[]>;
-  paginatedJobPostings$!: Observable<JobPosting[]>;
   searchQuery: string = '';
+  locationFilter: string = ''; // Add location filter
   sortBy: string = 'timestamp';
   sortOrder: 'asc' | 'desc' = 'desc';
   currentPage: number = 1;
-  pageSize: number = 10; // Default page size
+  pageSize: number = 10;
   pageSizes: number[] = [5, 10, 20, 50];
   totalItems: number = 0;
 
@@ -38,13 +38,18 @@ export class JobPostingsComponent implements OnInit {
     this.applyFiltersAndSorting();
   }
 
+  onLocationFilter() {
+    this.currentPage = 1; // Reset to first page on location filter change
+    this.applyFiltersAndSorting();
+  }
+
   onSortChange() {
-    this.currentPage = 1; // Reset to first page on sort change
+    this.currentPage = 1;
     this.applyFiltersAndSorting();
   }
 
   onPageSizeChange() {
-    this.currentPage = 1; // Reset to first page on page size change
+    this.currentPage = 1;
     this.applyFiltersAndSorting();
   }
 
@@ -75,6 +80,19 @@ export class JobPostingsComponent implements OnInit {
             : true
         );
 
+        // Apply location filter
+        filtered = filtered.filter((posting) =>
+          this.locationFilter
+            ? posting.location &&
+              posting.location
+                .toLowerCase()
+                .includes(this.locationFilter.toLowerCase())
+            : true
+        );
+
+        // Update total items for pagination
+        this.totalItems = filtered.length;
+
         // Apply sorting
         filtered.sort((a, b) => {
           const multiplier = this.sortOrder === 'asc' ? 1 : -1;
@@ -85,9 +103,6 @@ export class JobPostingsComponent implements OnInit {
           }
           return 0;
         });
-
-        // Update total items for pagination
-        this.totalItems = filtered.length;
 
         // Apply pagination
         const startIndex = (this.currentPage - 1) * this.pageSize;

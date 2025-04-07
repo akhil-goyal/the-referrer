@@ -11,8 +11,7 @@ const db = admin.firestore();
 
 cron.schedule("0 0 * * *", async () => {
   console.log("Running daily job posting check...");
-  const searchQuery = "Frontend Developer";
-  const locationFilter = "Canada";
+  const searchQuery = "Developer";
 
   const referrersSnapshot = await db.collection("referrals").get();
   const referrers = referrersSnapshot.docs.map((doc) => doc.data());
@@ -60,8 +59,13 @@ cron.schedule("0 0 * * *", async () => {
         return jobs;
       }, searchQuery);
 
+      console.log(
+        `Found ${potentialJobs.length} potential jobs for ${companyName}`
+      );
+
       const foundJobs = [];
       for (const job of potentialJobs) {
+        let jobDetails = { location: "", description: "" };
         try {
           console.log(`Checking job details: ${job.url}`);
           await page.goto(job.url, {
@@ -69,42 +73,68 @@ cron.schedule("0 0 * * *", async () => {
             timeout: 15000,
           });
 
-          const jobDetails = await page.evaluate(() => {
-            const locationElement = document.querySelector(
-              '.location, .job-location, [class*="location"], [data-location]'
+          jobDetails = await page.evaluate(() => {
+            // Try specific location selectors
+            let locationElement = document.querySelector(
+              '.location, .job-location, [class*="location"], [data-location], .city, .state, .country'
             );
+            let location = locationElement
+              ? locationElement.textContent.trim()
+              : "";
+
+            // Fallback: Search the entire page for location
+            if (!location) {
+              const bodyText = document.body.textContent;
+              // Match patterns like "Location: New York, NY" or "Based in Toronto, ON"
+              const locationMatch =
+                bodyText.match(
+                  /(?:location|city|province|state|country)\s*[:|-]\s*([A-Za-z\s,]+)(?=\s|$|\n)/i
+                ) ||
+                bodyText.match(
+                  /(?:based in|located in)\s*([A-Za-z\s,]+)(?=\s|$|\n)/i
+                );
+              location = locationMatch ? locationMatch[1].trim() : "";
+            }
+
+            // Validate the location: It should contain mostly letters, spaces, and commas
+            const isValidLocation = /^[A-Za-z\s,]+$/.test(location);
+            if (!isValidLocation) {
+              location = ""; // Reset to empty if it doesn't look like a valid location
+            }
+
             const descriptionElement = document.querySelector(
               '.description, .job-description, [class*="description"], [id*="description"]'
             );
             return {
-              location: locationElement
-                ? locationElement.textContent.trim()
-                : "",
+              location,
               description: descriptionElement
                 ? descriptionElement.textContent.trim()
                 : "",
             };
           });
 
-          if (
-            jobDetails.location
-              .toLowerCase()
-              .includes(locationFilter.toLowerCase())
-          ) {
-            foundJobs.push({
-              ...job,
-              location: jobDetails.location,
-              description: jobDetails.description,
-            });
-          }
-
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          console.log(
+            `Location for ${job.title}: ${jobDetails.location || "Not found"}`
+          );
         } catch (error) {
           console.error(
-            `Error checking job details for ${job.url}:`,
+            `Error extracting details for ${job.url}:`,
             error.message
           );
+          jobDetails = { location: "", description: "" };
         }
+
+        // Add the job to foundJobs regardless of location
+        foundJobs.push({
+          ...job,
+          location: jobDetails.location,
+          description: jobDetails.description,
+        });
+        console.log(
+          `Added to foundJobs: ${job.title} (Location: ${
+            jobDetails.location || "Not specified"
+          })`
+        );
       }
 
       for (const job of foundJobs) {
@@ -113,22 +143,33 @@ cron.schedule("0 0 * * *", async () => {
           url: job.url,
           companyName,
           careerPage,
-          location: job.location,
-          description: job.description, // Add description
+          location: job.location || "Not specified", // Default to "Not specified" if empty
+          description: job.description || "",
           timestamp: Date.now(),
           query: searchQuery,
         };
 
-        const existingJob = await db
-          .collection("jobPostings")
-          .where("url", "==", job.url)
-          .where("query", "==", searchQuery)
-          .get();
+        try {
+          const existingJob = await db
+            .collection("jobPostings")
+            .where("url", "==", job.url)
+            .where("query", "==", searchQuery)
+            .get();
 
-        if (existingJob.empty) {
-          await db.collection("jobPostings").add(jobPosting);
-          console.log(
-            `Added job posting: ${job.title} at ${companyName} (Location: ${job.location})`
+          if (existingJob.empty) {
+            await db.collection("jobPostings").add(jobPosting);
+            console.log(
+              `Added job posting: ${job.title} at ${companyName} (Location: ${job.location})`
+            );
+          } else {
+            console.log(
+              `Job already exists in database: ${job.title} (URL: ${job.url})`
+            );
+          }
+        } catch (error) {
+          console.error(
+            `Error saving job to Firestore: ${job.title} (URL: ${job.url})`,
+            error.message
           );
         }
       }

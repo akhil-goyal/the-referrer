@@ -1,9 +1,9 @@
 <div class="container py-4">
   <h2 class="mb-4">Job Postings</h2>
 
-  <!-- Search Bar -->
-  <div class="mb-4">
-    <div class="input-group">
+  <!-- Search and Location Filter -->
+  <div class="mb-4 d-flex gap-3">
+    <div class="input-group flex-grow-1">
       <input
         type="text"
         class="form-control"
@@ -12,6 +12,18 @@
         (input)="onSearch()"
       />
       <button class="btn btn-primary" (click)="onSearch()">Search</button>
+    </div>
+    <div class="input-group flex-grow-1">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Filter by location..."
+        [(ngModel)]="locationFilter"
+        (input)="onLocationFilter()"
+      />
+      <button class="btn btn-primary" (click)="onLocationFilter()">
+        Filter
+      </button>
     </div>
   </div>
 
@@ -67,7 +79,8 @@
           </h5>
           <p class="card-text">
             <strong>Company:</strong> {{ job.companyName }}<br />
-            <strong>Location:</strong> {{ job.location }}<br />
+            <strong>Location:</strong> {{ job.location || "Not specified"
+            }}<br />
             <strong>Career Page:</strong>
             <a [href]="job.careerPage" target="_blank">
               {{ job.careerPage }}
