@@ -18,4 +18,5 @@ export interface JobPosting {
   careerPage: string;
   timestamp: number;
   query: string;
+  location: string;
 }

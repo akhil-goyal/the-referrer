@@ -1,22 +1,19 @@
 const admin = require("firebase-admin");
-const axios = require("axios");
-const cheerio = require("cheerio");
+const puppeteer = require("puppeteer");
 const cron = require("node-cron");
 
-// Initialize Firebase Admin SDK
-const serviceAccount = require("./service-account.json"); // Replace with your service account key file
+const serviceAccount = require("./service-account.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
 
-// Scheduled job to check for job postings
 cron.schedule("* * * * *", async () => {
   console.log("Running daily job posting check...");
-  const searchQuery = "Frontend Developer";
+  const searchQuery = "Developer";
+  const locationFilter = "Canada";
 
-  // Fetch all referrers to get their companies
   const referrersSnapshot = await db.collection("referrals").get();
   const referrers = referrersSnapshot.docs.map((doc) => doc.data());
 
@@ -32,43 +29,73 @@ cron.schedule("* * * * *", async () => {
     });
   });
 
-  // Scrape each career page
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
+
   for (const { companyName, careerPage } of careerPages) {
     try {
       console.log(`Scraping ${companyName}: ${careerPage}`);
-      const response = await axios.get(careerPage, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        },
-        timeout: 10000,
+      await page.goto(careerPage, {
+        waitUntil: "networkidle2",
+        timeout: 30000,
       });
 
-      const $ = cheerio.load(response.data);
-      let foundJobs = [];
+      const potentialJobs = await page.evaluate((query) => {
+        const jobs = [];
+        const links = document.querySelectorAll("a");
+        links.forEach((link) => {
+          const href = link.getAttribute("href") || "";
+          const text = link.textContent.trim();
+          if (
+            text.toLowerCase().includes(query.toLowerCase()) &&
+            href &&
+            (href.startsWith("http") || href.startsWith("/"))
+          ) {
+            const jobUrl = href.startsWith("http")
+              ? href
+              : new URL(href, window.location.origin).href;
+            jobs.push({ title: text, url: jobUrl });
+          }
+        });
+        return jobs;
+      }, searchQuery);
 
-      $("a").each((_, element) => {
-        const href = $(element).attr("href") || "";
-        const text = $(element).text().trim();
-        if (
-          text.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          href &&
-          (href.startsWith("http") || href.startsWith("/"))
-        ) {
-          const jobUrl = href.startsWith("http")
-            ? href
-            : new URL(href, careerPage).href;
-          foundJobs.push({ title: text, url: jobUrl });
+      const foundJobs = [];
+      for (const job of potentialJobs) {
+        try {
+          console.log(`Checking job details: ${job.url}`);
+          await page.goto(job.url, {
+            waitUntil: "networkidle2",
+            timeout: 15000,
+          });
+
+          const location = await page.evaluate(() => {
+            const locationElement = document.querySelector(
+              '.location, .job-location, [class*="location"], [data-location]'
+            );
+            return locationElement ? locationElement.textContent.trim() : "";
+          });
+
+          if (location.toLowerCase().includes(locationFilter.toLowerCase())) {
+            foundJobs.push({ ...job, location });
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(
+            `Error checking job details for ${job.url}:`,
+            error.message
+          );
         }
-      });
+      }
 
-      // Store matching jobs in Firestore
       for (const job of foundJobs) {
         const jobPosting = {
           title: job.title,
           url: job.url,
           companyName,
           careerPage,
+          location: job.location,
           timestamp: Date.now(),
           query: searchQuery,
         };
@@ -81,11 +108,12 @@ cron.schedule("* * * * *", async () => {
 
         if (existingJob.empty) {
           await db.collection("jobPostings").add(jobPosting);
-          console.log(`Added job posting: ${job.title} at ${companyName}`);
+          console.log(
+            `Added job posting: ${job.title} at ${companyName} (Location: ${job.location})`
+          );
         }
       }
 
-      // Add a delay to avoid rate limiting
       await new Promise((resolve) => setTimeout(resolve, 2000));
     } catch (error) {
       console.error(
@@ -95,6 +123,7 @@ cron.schedule("* * * * *", async () => {
     }
   }
 
+  await browser.close();
   console.log("Job posting check complete.");
 });
 
