@@ -28,9 +28,19 @@ const userAgents = [
 const getRandomUserAgent = () =>
   userAgents[Math.floor(Math.random() * userAgents.length)];
 
-cron.schedule("* * * * *", async () => {
+// Array of search keywords
+const searchQueries = [
+  "Developer",
+  "Frontend",
+  "Full Stack",
+  "Fullstack",
+  "React",
+  "Angular",
+  "Web Developer",
+];
+
+cron.schedule("0 0 * * *", async () => {
   console.log("Running daily job posting check at", new Date().toISOString());
-  const searchQuery = "Developer";
 
   // Fetch career pages from referrals collection (companies)
   const referrersSnapshot = await db.collection("referrals").get();
@@ -174,25 +184,33 @@ cron.schedule("* * * * *", async () => {
         continue;
       }
 
-      const potentialJobs = await page.evaluate((query) => {
+      const potentialJobs = await page.evaluate((queries) => {
         const jobs = [];
         const links = document.querySelectorAll("a");
         links.forEach((link) => {
           const href = link.getAttribute("href") || "";
-          const text = link.textContent.trim();
+          const text = link.textContent.trim().toLowerCase();
+          // Check if the link text matches any of the search queries
+          const matchedQuery = queries.find((query) =>
+            text.includes(query.toLowerCase())
+          );
           if (
-            text.toLowerCase().includes(query.toLowerCase()) &&
+            matchedQuery &&
             href &&
             (href.startsWith("http") || href.startsWith("/"))
           ) {
             const jobUrl = href.startsWith("http")
               ? href
               : new URL(href, window.location.origin).href;
-            jobs.push({ title: text, url: jobUrl });
+            jobs.push({
+              title: link.textContent.trim(),
+              url: jobUrl,
+              query: matchedQuery,
+            });
           }
         });
         return jobs;
-      }, searchQuery);
+      }, searchQueries);
 
       console.log(
         `Found ${potentialJobs.length} potential jobs for ${companyName} (${type})`
@@ -302,7 +320,7 @@ cron.schedule("* * * * *", async () => {
           location: job.location || "Not specified",
           description: job.description || "",
           timestamp: Date.now(),
-          query: searchQuery,
+          query: job.query, // Store the specific keyword that matched
           sourceType: type,
         };
 
@@ -310,17 +328,17 @@ cron.schedule("* * * * *", async () => {
           const existingJob = await db
             .collection("jobPostings")
             .where("url", "==", job.url)
-            .where("query", "==", searchQuery)
+            .where("query", "==", job.query)
             .get();
 
           if (existingJob.empty) {
             await db.collection("jobPostings").add(jobPosting);
             console.log(
-              `Added job posting: ${job.title} at ${companyName} (${type}) (Location: ${job.location})`
+              `Added job posting: ${job.title} at ${companyName} (${type}) (Location: ${job.location}) (Query: ${job.query})`
             );
           } else {
             console.log(
-              `Job already exists in database: ${job.title} (URL: ${job.url})`
+              `Job already exists in database: ${job.title} (URL: ${job.url}, Query: ${job.query})`
             );
           }
         } catch (error) {
