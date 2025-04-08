@@ -9,13 +9,16 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-cron.schedule("* * * * *", async () => {
-  console.log("Running daily job posting check...");
+cron.schedule("0 0 * * *", async () => {
+  console.log("Running daily job posting check at", new Date().toISOString());
   const searchQuery = "Developer";
 
   // Fetch career pages from referrals collection (companies)
   const referrersSnapshot = await db.collection("referrals").get();
   const referrers = referrersSnapshot.docs.map((doc) => doc.data());
+  console.log(
+    `Fetched ${referrers.length} referrers from referrals collection`
+  );
 
   // Fetch career pages from recruitmentCompanies collection
   const recruitmentCompaniesSnapshot = await db
@@ -24,10 +27,14 @@ cron.schedule("* * * * *", async () => {
   const recruitmentCompanies = recruitmentCompaniesSnapshot.docs.map((doc) =>
     doc.data()
   );
+  console.log(
+    `Fetched ${recruitmentCompanies.length} recruitment companies from recruitmentCompanies collection`
+  );
 
   const careerPages = [];
 
   // Add career pages from referrals (companies)
+  let companyCount = 0;
   referrers.forEach((referrer) => {
     if (referrer.companies && Array.isArray(referrer.companies)) {
       referrer.companies.forEach((company) => {
@@ -39,12 +46,15 @@ cron.schedule("* * * * *", async () => {
             careerPage: company.careerPage,
             type: "company",
           });
+          companyCount++;
         }
       });
     }
   });
+  console.log(`Found ${companyCount} unique companies from referrals`);
 
   // Add career pages from recruitmentCompanies
+  let recruitmentCompanyCount = 0;
   recruitmentCompanies.forEach((recruitmentCompany) => {
     if (
       recruitmentCompany.careerPage &&
@@ -57,10 +67,18 @@ cron.schedule("* * * * *", async () => {
         careerPage: recruitmentCompany.careerPage,
         type: "recruitmentCompany",
       });
+      recruitmentCompanyCount++;
     }
   });
+  console.log(`Found ${recruitmentCompanyCount} unique recruitment companies`);
 
-  console.log(`Total career pages to scrape: ${careerPages.length}`);
+  console.log(`Total unique career pages to scrape: ${careerPages.length}`);
+  console.log(
+    "Career pages to scrape:",
+    careerPages.map(
+      (page) => `${page.companyName} (${page.type}): ${page.careerPage}`
+    )
+  );
 
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
@@ -108,7 +126,6 @@ cron.schedule("* * * * *", async () => {
           });
 
           jobDetails = await page.evaluate(() => {
-            // Try specific location selectors
             let locationElement = document.querySelector(
               '.location, .job-location, [class*="location"], [data-location], .city, .state, .country'
             );
@@ -116,7 +133,6 @@ cron.schedule("* * * * *", async () => {
               ? locationElement.textContent.trim()
               : "";
 
-            // Fallback: Search the entire page for location
             if (!location) {
               const bodyText = document.body.textContent;
               const locationMatch =
@@ -129,7 +145,6 @@ cron.schedule("* * * * *", async () => {
               location = locationMatch ? locationMatch[1].trim() : "";
             }
 
-            // Validate the location: It should contain mostly letters, spaces, and commas
             const isValidLocation = /^[A-Za-z\s,]+$/.test(location);
             if (!isValidLocation) {
               location = "";
@@ -157,7 +172,6 @@ cron.schedule("* * * * *", async () => {
           jobDetails = { location: "", description: "" };
         }
 
-        // Add the job to foundJobs
         foundJobs.push({
           ...job,
           location: jobDetails.location,
@@ -180,7 +194,7 @@ cron.schedule("* * * * *", async () => {
           description: job.description || "",
           timestamp: Date.now(),
           query: searchQuery,
-          sourceType: type, // Add sourceType to distinguish between company and recruitmentCompany
+          sourceType: type,
         };
 
         try {
@@ -218,7 +232,7 @@ cron.schedule("* * * * *", async () => {
   }
 
   await browser.close();
-  console.log("Job posting check complete.");
+  console.log("Job posting check complete at", new Date().toISOString());
 });
 
 console.log("Scraping job started. Running daily at midnight...");
