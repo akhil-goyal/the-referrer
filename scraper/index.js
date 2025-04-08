@@ -369,4 +369,11 @@ cron.schedule("0 0 * * *", async () => {
   console.log("Job posting check complete at", new Date().toISOString());
 });
 
+cron.schedule("0 0 * * 1", async () => {
+  console.log("Resetting weekly checks at", new Date().toISOString());
+  const weeklyCheckService = require("./weekly-check.service"); // Adjust path if needed
+  await weeklyCheckService.resetWeeklyChecks();
+  console.log("Weekly checks reset complete");
+});
+
 console.log("Scraping job started. Running daily at midnight...");
