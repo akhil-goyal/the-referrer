@@ -1,6 +1,10 @@
 const admin = require("firebase-admin");
-const puppeteer = require("puppeteer");
+const puppeteerExtra = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const cron = require("node-cron");
+
+// Use the stealth plugin to make the scraper less detectable
+puppeteerExtra.use(StealthPlugin());
 
 const serviceAccount = require("./service-account.json");
 admin.initializeApp({
@@ -9,7 +13,22 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-cron.schedule("0 0 * * *", async () => {
+// Function to get a random delay between min and max seconds
+const getRandomDelay = (min, max) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
+// List of user-agents to rotate
+const userAgents = [
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
+];
+
+// Function to get a random user-agent
+const getRandomUserAgent = () =>
+  userAgents[Math.floor(Math.random() * userAgents.length)];
+
+cron.schedule("* * * * *", async () => {
   console.log("Running daily job posting check at", new Date().toISOString());
   const searchQuery = "Developer";
 
@@ -20,24 +39,42 @@ cron.schedule("0 0 * * *", async () => {
     `Fetched ${referrers.length} referrers from referrals collection`
   );
 
-  // Fetch career pages from recruitmentCompanies collection
-  const recruitmentCompaniesSnapshot = await db
-    .collection("recruitmentCompanies")
-    .get();
-  const recruitmentCompanies = recruitmentCompaniesSnapshot.docs.map((doc) =>
-    doc.data()
-  );
+  // Fetch career pages from recruitingFirms collection
+  const recruitingFirmsSnapshot = await db.collection("recruitingFirms").get();
+  const recruitingFirms = recruitingFirmsSnapshot.docs.map((doc) => doc.data());
   console.log(
-    `Fetched ${recruitmentCompanies.length} recruitment companies from recruitmentCompanies collection`
+    `Fetched ${recruitingFirms.length} recruiting firms from recruitingFirms collection`
   );
+  if (recruitingFirms.length === 0) {
+    console.log(
+      "No recruiting firms found. Snapshot empty:",
+      recruitingFirmsSnapshot.empty
+    );
+    console.log(
+      "Snapshot docs:",
+      recruitingFirmsSnapshot.docs.map((doc) => doc.id)
+    );
+  } else {
+    console.log("Recruiting firms data:", recruitingFirms);
+  }
 
   const careerPages = [];
 
   // Add career pages from referrals (companies)
+  let totalCompanies = 0;
   let companyCount = 0;
   referrers.forEach((referrer) => {
     if (referrer.companies && Array.isArray(referrer.companies)) {
+      totalCompanies += referrer.companies.length;
       referrer.companies.forEach((company) => {
+        if (!company.careerPage) {
+          console.log(
+            `Skipping company: ${
+              company.name || "Unnamed"
+            } - Missing careerPage`
+          );
+          return;
+        }
         if (
           !careerPages.some((page) => page.careerPage === company.careerPage)
         ) {
@@ -47,30 +84,41 @@ cron.schedule("0 0 * * *", async () => {
             type: "company",
           });
           companyCount++;
+        } else {
+          console.log(
+            `Skipping company: ${
+              company.name || "Unnamed"
+            } - Duplicate careerPage: ${company.careerPage}`
+          );
         }
       });
     }
   });
+  console.log(`Total companies before deduplication: ${totalCompanies}`);
   console.log(`Found ${companyCount} unique companies from referrals`);
 
-  // Add career pages from recruitmentCompanies
-  let recruitmentCompanyCount = 0;
-  recruitmentCompanies.forEach((recruitmentCompany) => {
+  // Add career pages from recruitingFirms
+  let recruitingFirmCount = 0;
+  recruitingFirms.forEach((recruitingFirm) => {
     if (
-      recruitmentCompany.careerPage &&
-      !careerPages.some(
-        (page) => page.careerPage === recruitmentCompany.careerPage
-      )
+      recruitingFirm.url &&
+      !careerPages.some((page) => page.careerPage === recruitingFirm.url)
     ) {
       careerPages.push({
-        companyName: recruitmentCompany.name,
-        careerPage: recruitmentCompany.careerPage,
-        type: "recruitmentCompany",
+        companyName: recruitingFirm.name,
+        careerPage: recruitingFirm.url,
+        type: "recruitingFirm",
       });
-      recruitmentCompanyCount++;
+      recruitingFirmCount++;
+    } else {
+      console.log(
+        `Skipping recruiting firm: ${
+          recruitingFirm.name || "Unnamed"
+        } - Missing or duplicate careerPage: ${recruitingFirm.url}`
+      );
     }
   });
-  console.log(`Found ${recruitmentCompanyCount} unique recruitment companies`);
+  console.log(`Found ${recruitingFirmCount} unique recruiting firms`);
 
   console.log(`Total unique career pages to scrape: ${careerPages.length}`);
   console.log(
@@ -80,16 +128,51 @@ cron.schedule("0 0 * * *", async () => {
     )
   );
 
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteerExtra.launch({ headless: true });
   const page = await browser.newPage();
 
+  // Set a random user-agent for the browser
+  await page.setUserAgent(getRandomUserAgent());
+
+  // Track processed career pages to avoid re-scraping
+  const processedCareerPages = new Set();
+
   for (const { companyName, careerPage, type } of careerPages) {
+    if (processedCareerPages.has(careerPage)) {
+      console.log(
+        `Already processed ${companyName} (${type}): ${careerPage}. Skipping...`
+      );
+      continue;
+    }
+
     try {
       console.log(`Scraping ${companyName} (${type}): ${careerPage}`);
-      await page.goto(careerPage, {
+
+      // Set a new user-agent for each career page
+      await page.setUserAgent(getRandomUserAgent());
+
+      // Navigate to the career page with error handling
+      let response = await page.goto(careerPage, {
         waitUntil: "networkidle2",
         timeout: 30000,
       });
+      if (response.status() === 429) {
+        console.warn(
+          `Rate limit (429) detected for ${careerPage}. Waiting before retry...`
+        );
+        await new Promise((resolve) =>
+          setTimeout(resolve, getRandomDelay(30, 60) * 1000)
+        ); // Wait 30-60 seconds
+        response = await page.goto(careerPage, {
+          waitUntil: "networkidle2",
+          timeout: 30000,
+        });
+      }
+      if (response.status() === 403) {
+        console.error(`Access denied (403) for ${careerPage}. Skipping...`);
+        processedCareerPages.add(careerPage);
+        continue;
+      }
 
       const potentialJobs = await page.evaluate((query) => {
         const jobs = [];
@@ -120,10 +203,31 @@ cron.schedule("0 0 * * *", async () => {
         let jobDetails = { location: "", description: "" };
         try {
           console.log(`Checking job details: ${job.url}`);
-          await page.goto(job.url, {
+
+          // Set a new user-agent for each job detail page
+          await page.setUserAgent(getRandomUserAgent());
+
+          // Navigate to the job detail page with error handling
+          response = await page.goto(job.url, {
             waitUntil: "networkidle2",
             timeout: 15000,
           });
+          if (response.status() === 429) {
+            console.warn(
+              `Rate limit (429) detected for ${job.url}. Waiting before retry...`
+            );
+            await new Promise((resolve) =>
+              setTimeout(resolve, getRandomDelay(30, 60) * 1000)
+            ); // Wait 30-60 seconds
+            response = await page.goto(job.url, {
+              waitUntil: "networkidle2",
+              timeout: 15000,
+            });
+          }
+          if (response.status() === 403) {
+            console.error(`Access denied (403) for ${job.url}. Skipping...`);
+            continue;
+          }
 
           jobDetails = await page.evaluate(() => {
             let locationElement = document.querySelector(
@@ -182,6 +286,11 @@ cron.schedule("0 0 * * *", async () => {
             jobDetails.location || "Not specified"
           })`
         );
+
+        // Add a random delay between job detail pages (2-5 seconds)
+        await new Promise((resolve) =>
+          setTimeout(resolve, getRandomDelay(2, 5) * 1000)
+        );
       }
 
       for (const job of foundJobs) {
@@ -222,12 +331,19 @@ cron.schedule("0 0 * * *", async () => {
         }
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Mark the career page as processed
+      processedCareerPages.add(careerPage);
+
+      // Add a random delay between career pages (5-15 seconds)
+      await new Promise((resolve) =>
+        setTimeout(resolve, getRandomDelay(5, 15) * 1000)
+      );
     } catch (error) {
       console.error(
         `Error scraping ${companyName} (${type}) (${careerPage}):`,
         error.message
       );
+      processedCareerPages.add(careerPage); // Mark as processed even if it fails to avoid re-scraping
     }
   }
 
