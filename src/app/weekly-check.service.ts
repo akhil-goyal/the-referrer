@@ -1,19 +1,8 @@
 import { Injectable } from '@angular/core';
-import {
-  Firestore,
-  collection,
-  collectionData,
-  query,
-  where,
-  doc,
-  setDoc,
-  updateDoc,
-  writeBatch,
-  deleteDoc,
-} from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, query, where, doc, setDoc, updateDoc, writeBatch } from '@angular/fire/firestore';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { firstValueFrom } from 'rxjs'; // Import firstValueFrom
+import { firstValueFrom } from 'rxjs';
 import { WeeklyCheck } from '../types/weekly-check';
 
 @Injectable({
@@ -35,18 +24,15 @@ export class WeeklyCheckService {
     const weekStart = this.getWeekStart();
 
     const entities$ = collectionData(
-      collection(
-        this.firestore,
-        type === 'company' ? 'referrals' : 'recruitingFirms'
-      ),
+      collection(this.firestore, type === 'company' ? 'referrals' : 'recruitingFirms'),
       { idField: 'id' }
     ).pipe(
-      map((entities) =>
+      map(entities =>
         entities.map((e: any) => ({
           id: e.id,
           name: e.name,
-          companies: e.companies,
-          url: e.url,
+          companies: e.companies, // For companies in referrals
+          url: e.url, // For recruiting firms
         }))
       )
     );
@@ -62,20 +48,25 @@ export class WeeklyCheckService {
 
     return combineLatest([entities$, checks$]).pipe(
       map(([entities, checks]) => {
-        const entityList =
-          type === 'company'
-            ? entities.flatMap((e: any) =>
-                e.companies.map((c: any) => ({
-                  id: `${e.id}-${c.name}`,
-                  name: c.name,
-                }))
-              )
-            : entities.map((e: any) => ({ id: e.id, name: e.name }));
+        const entityList = type === 'company'
+          ? entities.flatMap((e: any) =>
+              e.companies.map((c: any) => ({
+                id: `${e.id}-${c.name}`,
+                name: c.name,
+                careerPage: c.careerPage, // Include career page for companies
+              }))
+            )
+          : entities.map((e: any) => ({
+              id: e.id,
+              name: e.name,
+              careerPage: e.url, // Use url as career page for recruiting firms
+            }));
 
-        return entityList.map((entity) => {
-          const check = checks.find((c) => c.entityId === entity.id) || {
+        return entityList.map(entity => {
+          const check = checks.find(c => c.entityId === entity.id) || {
             entityId: entity.id,
             entityName: entity.name,
+            careerPage: entity.careerPage, // Include career page in the check object
             type,
             weekStart,
             checked: false,
@@ -98,13 +89,10 @@ export class WeeklyCheckService {
 
   async resetWeeklyChecks(): Promise<void> {
     const weekStart = this.getWeekStart();
-    const lastWeekStart = new Date(
-      new Date(weekStart).setDate(new Date(weekStart).getDate() - 7)
-    )
+    const lastWeekStart = new Date(new Date(weekStart).setDate(new Date(weekStart).getDate() - 7))
       .toISOString()
       .split('T')[0];
 
-    // Fetch last week's checks
     const lastWeekChecks$ = collectionData(
       query(
         collection(this.firestore, 'weeklyChecks'),
@@ -115,14 +103,13 @@ export class WeeklyCheckService {
 
     const lastWeekChecks = await firstValueFrom(lastWeekChecks$);
 
-    // Use writeBatch for batch operations
     const batch = writeBatch(this.firestore);
-    lastWeekChecks?.forEach((check) => {
+    lastWeekChecks?.forEach(check => {
       const checkRef = doc(this.firestore, `weeklyChecks/${check.id}`);
       if (check.checked) {
-        batch.delete(checkRef); // Delete checked items
+        batch.delete(checkRef);
       } else {
-        batch.update(checkRef, { lastWeekMissed: true, weekStart }); // Update unchecked items
+        batch.update(checkRef, { lastWeekMissed: true, weekStart });
       }
     });
     await batch.commit();

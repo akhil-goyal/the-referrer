@@ -1,29 +1,29 @@
 <div class="weekly-check-container">
-  <h2>Recruiting Firm Weekly Check-In (Tuesday)</h2>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Recruiting Firm</th>
-        <th>Checked This Week</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let check of checks$ | async">
-        <td>{{ check.entityName }}</td>
-        <td>
-          <input
-            type="checkbox"
-            [checked]="check.checked"
-            (change)="check.checked = !check.checked; onCheckChange(check)"
-          />
-        </td>
-        <td>
-          <span *ngIf="check.lastWeekMissed" class="alert"
-            >Didn't check last week</span
-          >
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+    <h2>Recruiting Firm Weekly Check-In (Tuesday)</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Recruiting Firm</th>
+          <th>Checked This Week</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let check of checks$ | async">
+          <td>
+            <a [href]="check.careerPage" target="_blank" rel="noopener noreferrer">{{ check.entityName }}</a>
+          </td>
+          <td>
+            <input
+              type="checkbox"
+              [checked]="check.checked"
+              (change)="check.checked = !check.checked; onCheckChange(check)"
+            />
+          </td>
+          <td>
+            <span *ngIf="check.lastWeekMissed" class="alert">Didn't check last week</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
