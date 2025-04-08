@@ -22,7 +22,7 @@ export class JobPostingsComponent implements OnInit {
   locationFilter: string = '';
   companyFilter: string = '';
   uniqueLocations: string[] = [];
-  uniqueCompanies: string[] = []; // Add unique companies for dropdown
+  uniqueCompanies: string[] = [];
   sortBy: string = 'timestamp';
   sortOrder: 'asc' | 'desc' = 'desc';
   currentPage: number = 1;
@@ -149,6 +149,7 @@ export class JobPostingsComponent implements OnInit {
   }
 
   async deleteJob(jobId: string) {
+    // Removed | undefined since id is now guaranteed to be a string
     if (confirm('Are you sure you want to delete this job posting?')) {
       await this.referralService.deleteJobPosting(jobId);
       this.jobPostings$ = this.referralService.getJobPostings();

@@ -1,43 +1,46 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { ReferralService } from '../referral.service';
 import { CommonModule } from '@angular/common';
+import { ReferralService } from '../referral.service';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Referrer, Company } from './../../types/referrer';
 
 @Component({
   selector: 'app-companies',
-  imports: [RouterModule, CommonModule],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './companies.component.html',
   styleUrls: ['./companies.component.css'],
 })
 export class CompaniesComponent implements OnInit {
-  companies$!: Observable<{ name: string; careerPage: string }[]>;
+  companies$!: Observable<Company[]>;
 
   constructor(private referralService: ReferralService) {}
 
   ngOnInit() {
     this.companies$ = this.referralService.getReferrals().pipe(
-      map((referrals) => {
-        const companySet = new Set<string>();
-        const uniqueCompanies: { name: string; careerPage: string }[] = [];
+      map(referrers => {
+        // Flatten the companies arrays from all referrers
+        const allCompanies = referrers.reduce((acc, referrer) => {
+          if (referrer.companies && Array.isArray(referrer.companies)) {
+            return acc.concat(referrer.companies);
+          }
+          return acc;
+        }, [] as Company[]);
 
-        referrals.forEach((person: any) => {
-          person.companies.forEach(
-            (company: { name: string; careerPage: string }) => {
-              const companyKey = `${company.name.toLowerCase()}|${company.careerPage.toLowerCase()}`;
-              if (!companySet.has(companyKey)) {
-                companySet.add(companyKey);
-                uniqueCompanies.push({
-                  name: company.name,
-                  careerPage: company.careerPage,
-                });
-              }
-            }
-          );
+        // Remove duplicates based on company name (case-insensitive)
+        const uniqueCompaniesMap = new Map<string, Company>();
+        allCompanies.forEach(company => {
+          const key = company.name.toLowerCase();
+          if (!uniqueCompaniesMap.has(key)) {
+            uniqueCompaniesMap.set(key, company);
+          }
         });
 
-        return uniqueCompanies.sort((a, b) => a.name.localeCompare(b.name));
+        // Convert map values to array and sort by name
+        return Array.from(uniqueCompaniesMap.values()).sort((a, b) =>
+          a.name.localeCompare(b.name) // Changed title to name
+        );
       })
     );
   }

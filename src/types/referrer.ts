@@ -4,6 +4,7 @@ export interface Company {
 }
 
 export interface Referrer {
+  id?: string;
   name: string;
   companies: Company[];
   phone: string;
@@ -12,13 +13,14 @@ export interface Referrer {
 }
 
 export interface JobPosting {
-  id: string; // Add ID field
+  id: string; // Changed from id?: string | undefined
   title: string;
   url: string;
   companyName: string;
   careerPage: string;
-  timestamp: number;
-  query: string;
   location: string;
   description: string;
+  timestamp: number;
+  query: string;
+  sourceType?: string;
 }

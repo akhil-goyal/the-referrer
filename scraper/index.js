@@ -9,31 +9,65 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-cron.schedule("0 0 * * *", async () => {
+cron.schedule("* * * * *", async () => {
   console.log("Running daily job posting check...");
   const searchQuery = "Developer";
 
+  // Fetch career pages from referrals collection (companies)
   const referrersSnapshot = await db.collection("referrals").get();
   const referrers = referrersSnapshot.docs.map((doc) => doc.data());
 
+  // Fetch career pages from recruitmentCompanies collection
+  const recruitmentCompaniesSnapshot = await db
+    .collection("recruitmentCompanies")
+    .get();
+  const recruitmentCompanies = recruitmentCompaniesSnapshot.docs.map((doc) =>
+    doc.data()
+  );
+
   const careerPages = [];
+
+  // Add career pages from referrals (companies)
   referrers.forEach((referrer) => {
-    referrer.companies.forEach((company) => {
-      if (!careerPages.some((page) => page.careerPage === company.careerPage)) {
-        careerPages.push({
-          companyName: company.name,
-          careerPage: company.careerPage,
-        });
-      }
-    });
+    if (referrer.companies && Array.isArray(referrer.companies)) {
+      referrer.companies.forEach((company) => {
+        if (
+          !careerPages.some((page) => page.careerPage === company.careerPage)
+        ) {
+          careerPages.push({
+            companyName: company.name,
+            careerPage: company.careerPage,
+            type: "company",
+          });
+        }
+      });
+    }
   });
+
+  // Add career pages from recruitmentCompanies
+  recruitmentCompanies.forEach((recruitmentCompany) => {
+    if (
+      recruitmentCompany.careerPage &&
+      !careerPages.some(
+        (page) => page.careerPage === recruitmentCompany.careerPage
+      )
+    ) {
+      careerPages.push({
+        companyName: recruitmentCompany.name,
+        careerPage: recruitmentCompany.careerPage,
+        type: "recruitmentCompany",
+      });
+    }
+  });
+
+  console.log(`Total career pages to scrape: ${careerPages.length}`);
 
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
-  for (const { companyName, careerPage } of careerPages) {
+  for (const { companyName, careerPage, type } of careerPages) {
     try {
-      console.log(`Scraping ${companyName}: ${careerPage}`);
+      console.log(`Scraping ${companyName} (${type}): ${careerPage}`);
       await page.goto(careerPage, {
         waitUntil: "networkidle2",
         timeout: 30000,
@@ -60,7 +94,7 @@ cron.schedule("0 0 * * *", async () => {
       }, searchQuery);
 
       console.log(
-        `Found ${potentialJobs.length} potential jobs for ${companyName}`
+        `Found ${potentialJobs.length} potential jobs for ${companyName} (${type})`
       );
 
       const foundJobs = [];
@@ -85,7 +119,6 @@ cron.schedule("0 0 * * *", async () => {
             // Fallback: Search the entire page for location
             if (!location) {
               const bodyText = document.body.textContent;
-              // Match patterns like "Location: New York, NY" or "Based in Toronto, ON"
               const locationMatch =
                 bodyText.match(
                   /(?:location|city|province|state|country)\s*[:|-]\s*([A-Za-z\s,]+)(?=\s|$|\n)/i
@@ -99,7 +132,7 @@ cron.schedule("0 0 * * *", async () => {
             // Validate the location: It should contain mostly letters, spaces, and commas
             const isValidLocation = /^[A-Za-z\s,]+$/.test(location);
             if (!isValidLocation) {
-              location = ""; // Reset to empty if it doesn't look like a valid location
+              location = "";
             }
 
             const descriptionElement = document.querySelector(
@@ -124,7 +157,7 @@ cron.schedule("0 0 * * *", async () => {
           jobDetails = { location: "", description: "" };
         }
 
-        // Add the job to foundJobs regardless of location
+        // Add the job to foundJobs
         foundJobs.push({
           ...job,
           location: jobDetails.location,
@@ -143,10 +176,11 @@ cron.schedule("0 0 * * *", async () => {
           url: job.url,
           companyName,
           careerPage,
-          location: job.location || "Not specified", // Default to "Not specified" if empty
+          location: job.location || "Not specified",
           description: job.description || "",
           timestamp: Date.now(),
           query: searchQuery,
+          sourceType: type, // Add sourceType to distinguish between company and recruitmentCompany
         };
 
         try {
@@ -159,7 +193,7 @@ cron.schedule("0 0 * * *", async () => {
           if (existingJob.empty) {
             await db.collection("jobPostings").add(jobPosting);
             console.log(
-              `Added job posting: ${job.title} at ${companyName} (Location: ${job.location})`
+              `Added job posting: ${job.title} at ${companyName} (${type}) (Location: ${job.location})`
             );
           } else {
             console.log(
@@ -177,7 +211,7 @@ cron.schedule("0 0 * * *", async () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
     } catch (error) {
       console.error(
-        `Error scraping ${companyName} (${careerPage}):`,
+        `Error scraping ${companyName} (${type}) (${careerPage}):`,
         error.message
       );
     }
